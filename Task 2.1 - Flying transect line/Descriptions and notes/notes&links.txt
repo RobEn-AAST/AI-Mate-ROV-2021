@@ -1,0 +1,7 @@
+NOTES:
+for output use print statements as guiding system as an abstraction layer from control systems for now i.g.(print("go left") # if the blue lines move too much to the left of the view)
+
+
+LINKS:
+
+https://vimeo.com/373234544
