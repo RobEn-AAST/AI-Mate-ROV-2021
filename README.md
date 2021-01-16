@@ -3,6 +3,15 @@ This Repo houses all missions of mate 2021 for the AI team
 
 ### How to use
 
-Each folder houses a Mission and should be named after that mission's number-title
+- Each folder houses a Mission and should be named after that mission's number-title
+    - example : ( Task 2.2 - health of the coral colony).
 
-each mission folder should have a requirements.txt file to specify the required dependencies for that specific mission, to use files in said folder you should switch your venv to that of said mission if it uses different libraries and then use the files inside. 
+- each folder should have all task scripts only for said task
+
+- each mission folder should have a requirements.txt file to specify the required dependencies for that specific mission.
+
+- create virtual envs for each mission for only that mission's libraries
+
+- make / use a description folder in each task that has included notes and mission abstract
+
+- cut down on pre-project junk
