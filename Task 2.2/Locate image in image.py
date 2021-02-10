@@ -4,7 +4,7 @@ import cv2
 import imutils
 from skimage.metrics import structural_similarity
 
-SmallImageDir = "G:/tmp/project ai/2.2/cred.png"
+SmallImageDir = "G:/tmp/project ai/2.2/credo.png"
 BigImageDir = "G:/tmp/project ai/2.2/3.png"
 
 SmallImageColored = cv.imread(SmallImageDir)
@@ -25,7 +25,7 @@ keypoints2, descriptors2 = detector.detectAndCompute(BigImage, None)
 matcher = cv.DescriptorMatcher_create(cv.DESCRIPTOR_MATCHER_BRUTEFORCE)
 knn_matches = matcher.knnMatch(descriptors1, descriptors2, 2)
 # -- Filter matches using the Lowe's ratio test
-ratio_thresh = 0.8
+ratio_thresh = 0.7
 good_matches = []
 for m, n in knn_matches:
     if m.distance < ratio_thresh * n.distance:
@@ -67,7 +67,7 @@ if minX - factorx < 0:
 
 
 maxX1 = maxY1 = 0
-(minX1, minY1) = list_kp2[0]
+(minX1, minY1) = list_kp1[0]
 for (i, j) in list_kp1:
     if (i > maxX1):
         maxX1 = i
