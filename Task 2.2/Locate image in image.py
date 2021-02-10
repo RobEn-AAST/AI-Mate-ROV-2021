@@ -25,7 +25,11 @@ keypoints2, descriptors2 = detector.detectAndCompute(BigImage, None)
 matcher = cv.DescriptorMatcher_create(cv.DESCRIPTOR_MATCHER_BRUTEFORCE)
 knn_matches = matcher.knnMatch(descriptors1, descriptors2, 2)
 # -- Filter matches using the Lowe's ratio test
+
+
 ratio_thresh = 0.7
+
+
 good_matches = []
 for m, n in knn_matches:
     if m.distance < ratio_thresh * n.distance:
