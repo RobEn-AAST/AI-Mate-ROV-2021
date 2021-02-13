@@ -5,6 +5,7 @@
 import numpy as np
 import imutils
 import cv2
+import argparse
 
 
 def align_images(image, template, maxFeatures=500, keepPercent=0.2,
@@ -37,7 +38,6 @@ def align_images(image, template, maxFeatures=500, keepPercent=0.2,
         matchedVis = cv2.drawMatches(image, kpsA, template, kpsB,
                                      matches, None)
         matchedVis = imutils.resize(matchedVis, width=1000)
-        cv2.imshow("Matched Keypoints", matchedVis)
         cv2.waitKey(0)
 
     # allocate memory for the keypoints (x,y-coordinates) from the
@@ -66,11 +66,17 @@ def align_images(image, template, maxFeatures=500, keepPercent=0.2,
 
 
 # construct the argument parser and parse the arguments
+parser = argparse.ArgumentParser(description='task 2.2\nthis code takes 2 images and processes then and prints the output on the screen and stores it in a file called result.jpg')
+parser.add_argument('-O','--old', metavar='', type=str,
+                    help='the path of the old image',required=True)
+parser.add_argument('-N','--new', metavar='', type=str,
+                    help='the path of the new image',required=True)
 
+args = parser.parse_args()
 # load the input image and template from disk
 print("[INFO] loading images...")
-image = cv2.imread('new.png')
-template = cv2.imread('temp.png')
+image = cv2.imread(args.new)
+template = cv2.imread(args.old)
 
 # align the images
 print("[INFO] aligning images...")
@@ -81,30 +87,11 @@ aligned = align_images(image, template, debug=True)
 aligned = imutils.resize(aligned, width=700)
 template = imutils.resize(template, width=700)
 
-# our first output visualization of the image alignment will be a
-# side-by-side comparison of the output aligned image and the
-# template
-stacked = np.hstack([aligned, template])
-
-# our second image alignment visualization will be *overlaying* the
-# aligned image on the template, that way we can obtain an idea of
-# how good our image alignment is
-overlay = template.copy()
-output = aligned.copy()
-cv2.imwrite('over.png', overlay)
-cv2.imwrite('out.png', output)
-cv2.addWeighted(overlay, 0.5, output, 0.5, 0, output)
-# show the two output image alignment visualizations
-cv2.imshow("Image Alignment Stacked", stacked)
-cv2.imshow("Image Alignment Overlay", output)
-cv2.waitKey(0)
-
 
 # define images class
 class image:
     def __init__(self, img):
         self.original = cv2.resize(img, (500, 500))
-        # self.original = cv2.resize(img, img.shape[:2])
         self.hsv = cv2.cvtColor(self.original, cv2.COLOR_BGR2HSV)
 
 
@@ -115,7 +102,7 @@ class changes_detector:
         self.lower_white = np.array([0, 3, 220])
         self.upper_white = np.array([255, 255, 255])
         self.kernel = np.ones((2, 2), np.uint8)
-
+        self.kernel2 = np.ones((15, 15), np.uint8)
     def detect(self, old_image, new_image):
         preview = new_image.original.copy()
         # create masks
@@ -137,6 +124,8 @@ class changes_detector:
         new_image_white = cv2.morphologyEx(new_image_white, cv2.MORPH_OPEN, self.kernel)
         # find the common purple part between the 2 images using bitwise xor
         common_purple = cv2.bitwise_xor(old_image_purple, new_image_purple)
+        common_purple = cv2.bitwise_xor(common_purple,new_image_white)
+        
         # growth = new image && common part
         growth = cv2.bitwise_and(new_image_purple, common_purple)
         # death  = old image && common
@@ -147,7 +136,7 @@ class changes_detector:
         recovery = cv2.bitwise_and(new_image_purple, old_image_white)
         # apply opening morphology on results  to reduce noise
         growth = cv2.morphologyEx(growth, cv2.MORPH_OPEN, self.kernel)
-        death = cv2.morphologyEx(death, cv2.MORPH_OPEN, self.kernel)
+        death = cv2.morphologyEx(death, cv2.MORPH_OPEN, self.kernel2)
         blotching = cv2.morphologyEx(blotching, cv2.MORPH_OPEN, self.kernel)
         recovery = cv2.morphologyEx(recovery, cv2.MORPH_OPEN, self.kernel)
         # transform the growth and death images to the grey scale domain to get contours
@@ -175,7 +164,6 @@ class changes_detector:
                 cv2.rectangle(preview, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.putText(preview, "growth " , (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, 0.7,
                             (0, 255, 0), 2)
-                # cv2.drawContours(preview, c, -1, (0, 255, 0), 1)
         for c in death_cnts:
             if cv2.contourArea(c) > area:
                 peri = cv2.arcLength(c, True)
@@ -185,7 +173,6 @@ class changes_detector:
                 cv2.rectangle(preview, (x, y), (x + w, y + h), (0, 255, 255), 2)
                 cv2.putText(preview, "death ", (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, 0.7,
                             (0, 255, 255), 2)
-                # cv2.drawContours(preview, c, -1, (0, 255, 255), 1)
         for c in blotching_cnts:
             if cv2.contourArea(c) > area:
                 peri = cv2.arcLength(c, True)
@@ -195,7 +182,6 @@ class changes_detector:
                 cv2.rectangle(preview, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 cv2.putText(preview, "blotching ", (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, 0.7,
                             (0, 0, 255), 2)
-                # cv2.drawContours(preview, c, -1, (0, 0, 255), 1)
         for c in recovery_cnts:
             if cv2.contourArea(c) > area:
                 peri = cv2.arcLength(c, True)
@@ -205,23 +191,18 @@ class changes_detector:
                 # red
                 cv2.putText(preview, "recovery " , (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, 0.7,
                             (255,0 , 0), 2)
-                # cv2.drawContours(preview, c, -1, (255, 0, 0), 1)
-        # cv2.drawContours(preview, growth_cnts, -1, (0, 255, 0), 1)
-        # cv2.drawContours(preview, death_cnts, -1, (0, 255, 255), 1)
-        # cv2.drawContours(preview, blotching_cnts, -1, (0, 0, 255), 1)
-        # cv2.drawContours(preview, recovery_cnts, -1, (255, 0, 0), 1)
 
         return np.hstack([old_image.original, new_image.original, preview])
 
 
 # load the image
 old_image = image(template)
-cv2.imshow('temp', template)
-cv2.imshow('aligned', aligned)
 cv2.waitKey(0)
 new_image = image(aligned)
 # create images detector
 imagedetector = changes_detector()
 # draw output
-cv2.imshow("input_images", imagedetector.detect(old_image, new_image))
+result = imagedetector.detect(old_image, new_image)
+cv2.imshow("result", result)
+cv2.imwrite("result.jpg",result)
 cv2.waitKey(0)
