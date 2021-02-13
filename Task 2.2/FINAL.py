@@ -1,5 +1,5 @@
 # USAGE
-# python align_document.py --template form_w4.png --image scans/scan_01.jpg
+# add temp.png and new.png in same dir
 # note : not disabling image shows unless we finish project
 # import the necessary packages
 import numpy as np
