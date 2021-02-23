@@ -1,7 +1,7 @@
 #Object Tracking
 import cv2
 import numpy as np
-import final
+import object_detection_module
 # Initalize camera
 cap = cv2.VideoCapture(0)
 flag = False
@@ -12,16 +12,24 @@ points = []
 # Get default camera window size
 ret, frame = cap.read()
 Height, Width = frame.shape[:2]
+old_image = cv2.imread("old.png")
+old_image = cv2.resize(old_image,(Width,Height))
 frame_count = 0
+kernel3 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 
+print("learning background ... please dont put any thing in the ROV way !!!")
+backSub = cv2.createBackgroundSubtractorMOG2()
+print("Background subtractor created successfully... just a few more seconds")
 while True:
 
     # Capture webcame frame
     ret, frame = cap.read()
     hsv_img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
+    #update the background model
+    fgMask = backSub.apply(frame,15000)
+    fgMask = cv2.morphologyEx(fgMask, cv2.MORPH_OPEN, kernel3)
     # Threshold the HSV image to get only blue colors
-    mask = cv2.inRange(hsv_img, final.lower_purple, final.upper_purple)
+    mask = cv2.inRange(hsv_img, object_detection_module.lower_purple, object_detection_module.upper_purple)
     
     # Find contours, OpenCV 3.X users use this line instead
     _, contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -46,7 +54,7 @@ while True:
             
             # Draw cirlce and leave the last center creating a trail
             #use our function here
-            contours = final.align_and_detect(cv2.flip(frame, 1))
+            contours = object_detection_module.detect(cv2.flip(frame, 1),old_image,fgMask)
             # Log center points 
             points.append(center)
             frame_count = 0
@@ -100,7 +108,7 @@ while True:
                 # red
                 cv2.putText(frame, "recovery " , (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, 0.7,(255,0 , 0), 2)
     cv2.imshow("Object Tracker", frame)
-
+    cv2.imshow('FG Mask', fgMask)
     if cv2.waitKey(1) == 13: #13 is the Enter Key
         break
 
