@@ -49,7 +49,7 @@ while True:
         if radius > 25:
             # Draw cirlce and leave the last center creating a trail
             #use our function here
-            contours = object_detection_module.detect(cv2.flip(frame, 1),old_image,fgMask,debug = True)
+            contours = object_detection_module.detect(cv2.flip(frame, 1),old_image,fgMask,debug = False)
             # Log center points 
             points.append(center)
             frame_count = 0
