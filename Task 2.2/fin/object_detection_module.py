@@ -1,9 +1,4 @@
-# USAGE
-# python align_document.py --template form_w4.png --image scans/scan_01.jpg
-# note : not disabling image shows unless we finish project
-# import the necessary packages
 import numpy as np
-import imutils
 import cv2
 
 lower_purple = np.array([130, 50, 90])
@@ -13,44 +8,42 @@ upper_white = np.array([255, 255, 255])
 kernel = np.ones((5, 5), np.uint8)
 kernel2 = np.ones((15, 15), np.uint8)
 
+def extract(image):
+    purple_mask = cv2.inRange(image, lower_purple,upper_purple)
+    white_mask = cv2.inRange(image, lower_white, upper_white)
+    white  = cv2.bitwise_and(image, image, mask=white_mask)
+    purple = cv2.bitwise_and(image, image, mask=purple_mask)
+    white[white_mask > 0] = (255, 255, 255)
+    purple[purple_mask > 0] = (255, 255, 255)
+    white = cv2.morphologyEx(white, cv2.MORPH_OPEN,kernel)
+    return { 'original' : image,'white' : white,'purple' : purple}
+
+def togrey(image_dict):
+    image = cv2.cvtColor(image_dict.get('original'), cv2.COLOR_BGR2GRAY)
+    purple = cv2.cvtColor(image_dict.get('white'), cv2.COLOR_BGR2GRAY)
+    white = cv2.cvtColor(image_dict.get('purple'), cv2.COLOR_BGR2GRAY)
+    purple = cv2.threshold(purple, 127, 255, cv2.THRESH_BINARY)[1]
+    white = cv2.threshold(white, 127, 255, cv2.THRESH_BINARY)[1]
+    return { 'original' : image,'white' : white,'purple' : purple}
+
 def detect(new_image, old_image,fgmask):
-    # create masks
-    
-    mask1 = cv2.inRange(old_image, lower_purple,upper_purple)
-    mask2 = cv2.inRange(new_image, lower_purple,upper_purple)
-    mask3 = cv2.inRange(old_image, lower_white, upper_white)
-    mask4 = cv2.inRange(new_image, lower_white, upper_white)
-    # extract purple parts and white parts from 2 images
-    old_image_purple = cv2.bitwise_and(old_image, old_image, mask=mask1)
-    old_image_white = cv2.bitwise_and(old_image, old_image, mask=mask3)
-    new_image_purple = cv2.bitwise_and(new_image, new_image, mask=mask2)
-    new_image_white = cv2.bitwise_and(new_image, new_image, mask=mask4)
-    old_image_purple[mask1 > 0] = (255, 255, 255)
-    new_image_purple[mask2 > 0] = (255, 255, 255)
-    old_image_white[mask3 > 0] = (255, 255, 255)
-    new_image_white[mask4 > 0] = (255, 255, 255)
-    old_image_purple_g = cv2.cvtColor(old_image_purple, cv2.COLOR_BGR2GRAY)
-    new_image_purple_g = cv2.cvtColor(new_image_purple, cv2.COLOR_BGR2GRAY)
-    old_image_white_g = cv2.cvtColor(old_image_white, cv2.COLOR_BGR2GRAY)
-    new_image_white_g = cv2.cvtColor(new_image_white, cv2.COLOR_BGR2GRAY)
-    (thresh, old_image_purple_g) = cv2.threshold(old_image_purple_g, 127, 255, cv2.THRESH_BINARY)
-    (thresh, new_image_purple_g) = cv2.threshold(new_image_purple_g, 127, 255, cv2.THRESH_BINARY)
-    (thresh, old_image_white_g) = cv2.threshold(old_image_white_g, 127, 255, cv2.THRESH_BINARY)
-    (thresh, new_image_white_g) = cv2.threshold(new_image_white_g, 127, 255, cv2.THRESH_BINARY)
-    # apply opening morphology on results  to reduce noise
-    old_image_white = cv2.morphologyEx(old_image_white, cv2.MORPH_OPEN,kernel)
-    new_image_white = cv2.morphologyEx(new_image_white, cv2.MORPH_OPEN,kernel)
+    oldimage = extract(old_image)
+    newimage = extract(new_image)
+    oldimage_g = togrey(oldimage)
+    newimage_g = togrey(newimage)
     # find the common purple part between the 2 images using bitwise xor
-    common_purple = cv2.bitwise_xor(fgmask, new_image_purple_g)
+    common_purple = cv2.bitwise_xor(fgmask, newimage_g.get('purple'))
+    common_purple = cv2.subtract(common_purple,oldimage_g.get('white'))
+    common_purple = cv2.subtract(common_purple,newimage_g.get('white'))
     cv2.imshow("common purple",common_purple)
     # growth = new image && common part
-    growth = cv2.bitwise_and(new_image_purple_g, common_purple)
+    growth = cv2.bitwise_and(newimage_g.get('purple'), common_purple)
     # death  = old image && common
-    death = cv2.bitwise_and(old_image_purple_g, common_purple)
+    death = cv2.bitwise_and(oldimage_g.get('purple'), common_purple)
     # bloching = white new image && purple old image
-    blotching = cv2.bitwise_and(new_image_white, old_image_purple)
+    blotching = cv2.bitwise_and(oldimage.get('white'), oldimage.get('purple'))
     # recovery = purple new image && white old image
-    recovery = cv2.bitwise_and(new_image_purple, old_image_white)
+    recovery = cv2.bitwise_and(newimage.get('purple'), oldimage.get('white'))
     # apply opening morphology on results  to reduce noise
     growth = cv2.morphologyEx(growth, cv2.MORPH_OPEN, kernel)
     death = cv2.morphologyEx(death, cv2.MORPH_OPEN, kernel2)

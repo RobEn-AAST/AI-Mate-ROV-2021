@@ -1,6 +1,5 @@
 #Object Tracking
 import cv2
-import numpy as np
 import object_detection_module
 # Initalize camera
 cap = cv2.VideoCapture(0)
@@ -73,7 +72,7 @@ while True:
             
     # Display our object tracker
     frame = cv2.flip(frame, 1)
-    area = 750
+    area = 150
     if flag:
         for c in contours.get('growth_cnts'):
             if cv2.contourArea(c) > area:
