@@ -43,19 +43,14 @@ def detect(new_image, old_image,fgmask,debug = False):
     # death  = old image && common
     death = cv2.bitwise_and(oldimage_g.get('purple'), common_purple)
     # bloching = white new image && purple old image
-    blotching = cv2.bitwise_and(oldimage.get('white'), oldimage.get('purple'))
+    blotching = cv2.bitwise_and(oldimage_g.get('white'), oldimage_g.get('purple'))
     # recovery = purple new image && white old image
-    recovery = cv2.bitwise_and(newimage.get('purple'), oldimage.get('white'))
+    recovery = cv2.bitwise_and(newimage_g.get('purple'), oldimage_g.get('white'))
     # apply opening morphology on results  to reduce noise
     growth = cv2.morphologyEx(growth, cv2.MORPH_OPEN, kernel)
     death = cv2.morphologyEx(death, cv2.MORPH_OPEN, kernel)
     blotching = cv2.morphologyEx(blotching, cv2.MORPH_OPEN, kernel)
     recovery = cv2.morphologyEx(recovery, cv2.MORPH_OPEN, kernel)
-    # transform the growth and death images to the grey scale domain to get contours
-    blotching = cv2.cvtColor(blotching, cv2.COLOR_BGR2GRAY)
-    recovery = cv2.cvtColor(recovery, cv2.COLOR_BGR2GRAY)
-    blotching = cv2.threshold(blotching, 127, 255, 0)[1]
-    recovery = cv2.threshold(recovery, 127, 255, 0)[1]
     # find the contours
     growth_cnts = cv2.findContours(growth, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
     death_cnts = cv2.findContours(death, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
