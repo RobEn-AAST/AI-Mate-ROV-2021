@@ -64,3 +64,12 @@ def detect(new_image, old_image,fgmask,debug = False):
         cv2.imshow("blotching",blotching)
         cv2.imshow("recovery",recovery)
     return { 'growth_cnts' : growth_cnts,'death_cnts' : death_cnts,'blotching_cnts' : blotching_cnts,'recovery_cnts' : recovery_cnts }
+
+def filter_contours(image,contours,color,text,area = 150):
+    for c in contours:
+        if cv2.contourArea(c) > area:
+            peri = cv2.arcLength(c, True)
+            approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+            x, y, w, h = cv2.boundingRect(approx)
+            cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
+            cv2.putText(image, text , (x + w + 20, y + 20), cv2.FONT_HERSHEY_COMPLEX, 0.7,color, 2)
