@@ -28,6 +28,8 @@ while True:
     # Threshold the HSV image to get only blue colors
     mask = cv2.inRange(hsv_img, object_detection_module.lower_purple, object_detection_module.upper_purple)
     contours= cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[1]
+    if contours.count == 0:
+        continue
     max_area = max(cv2.contourArea(c) for c in contours)    
     # Check if contours captured a purple object with an bigger object than minimum area
     if len(contours) > 0 and max_area <= area:
