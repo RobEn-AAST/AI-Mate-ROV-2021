@@ -7,7 +7,7 @@ LOWER_WHITE = np.array([0, 3, 220])
 UPPER_WHITE = np.array([255, 255, 255])
 KERNEL_ALLIGN = np.ones((5, 5), np.uint8)
 KERNEL_BACK_GROUND_MODEL = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-MAX_FEATURES = 15000
+MAX_FEATURES = 100
 GOOD_MATCH_PERCENT = 0.15
 AREA = 250
 GREEN = (0, 255, 0)
@@ -18,6 +18,8 @@ BLUE = (255, 0, 0)
 #create back ground subtraction model using MOG2 algorithm
 ## To change to KNN Algorithm replace the previous line with >> backSub = cv2.createBackgroundSubtractorKNN()
 backSub = cv2.createBackgroundSubtractorMOG2()
+bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
+orb = cv2.ORB_create(MAX_FEATURES)
 
 def update_background_model(frame,debug = False):
     fgMask = backSub.apply(frame,15000)
@@ -28,7 +30,6 @@ def update_background_model(frame,debug = False):
 
 
 def check_for_matches(old,new,debug = False):
-    bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
     matches = bf.match(cv2.cvtColor(old, cv2.COLOR_BGR2GRAY),cv2.cvtColor(new, cv2.COLOR_BGR2GRAY))
     matches.sort(key=lambda x: x.distance, reverse=False)
   # Remove not so good matches
@@ -38,12 +39,12 @@ def check_for_matches(old,new,debug = False):
     num_of_matches = len(matches)
     if debug:
         print("matching percentage = " + str( (num_good_Matches/MAX_FEATURES) * 100))
-    return (num_of_matches >= MAX_FEATURES,num_of_matches)
+    return (num_of_matches >= MAX_FEATURES,num_good_Matches)
 
-def align(old,new,matches,debug = False):
-    orb = cv2.ORB_create(MAX_FEATURES)
-    keypoints1 = orb.detectAndCompute(cv2.cvtColor(new, cv2.COLOR_BGR2GRAY), None)[0]
-    keypoints2 = orb.detectAndCompute(cv2.cvtColor(old, cv2.COLOR_BGR2GRAY), None)[0]
+def align(old,new,debug = False):
+    keypoints1, descriptors1 = orb.detectAndCompute(cv2.cvtColor(old, cv2.COLOR_BGR2GRAY), None)
+    keypoints2, descriptors2 = orb.detectAndCompute(cv2.cvtColor(new, cv2.COLOR_BGR2GRAY), None)
+    matches = bf.match(descriptors1, descriptors2, None)
     points1 = np.zeros((len(matches), 2), dtype=np.float32)
     points2 = np.zeros((len(matches), 2), dtype=np.float32)
     for i, match in enumerate(matches):
