@@ -6,7 +6,6 @@ UPPER_PURPLE = np.array([170, 255, 255])
 LOWER_WHITE = np.array([0, 3, 220])
 UPPER_WHITE = np.array([255, 255, 255])
 KERNEL_ALLIGN = np.ones((2, 2), np.uint8)
-KERNEL_BACK_GROUND_MODEL = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 MAX_FEATURES = 100
 GOOD_MATCH_PERCENT = 0.15
 AREA = 250
@@ -15,31 +14,20 @@ YELLOW = (0, 255, 255)
 RED = (0, 0, 255)
 BLUE = (255, 0, 0)
 
-#create back ground subtraction model using MOG2 algorithm
-## To change to KNN Algorithm replace the previous line with >> backSub = cv2.createBackgroundSubtractorKNN()
-backSub = cv2.createBackgroundSubtractorMOG2()
 bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
 orb = cv2.ORB_create(MAX_FEATURES)
-
-def update_background_model(frame,debug = False):
-    fgMask = backSub.apply(frame,15000)
-    fgMask = cv2.morphologyEx(fgMask, cv2.MORPH_OPEN, KERNEL_BACK_GROUND_MODEL)
-    if debug:
-        cv2.imshow("new back ground",fgMask)
-    return fgMask
-
 
 def check_for_matches(old,new,debug = False):
     matches = bf.match(cv2.cvtColor(old, cv2.COLOR_BGR2GRAY),cv2.cvtColor(new, cv2.COLOR_BGR2GRAY))
     matches.sort(key=lambda x: x.distance, reverse=False)
   # Remove not so good matches
     matches.sort(key=lambda x: x.distance, reverse=False)
-    num_good_Matches = int(len(matches) * GOOD_MATCH_PERCENT)
-    matches = matches[:num_good_Matches]
+    numgoodmatches = int(len(matches) * GOOD_MATCH_PERCENT)
+    matches = matches[:numgoodmatches]
     num_of_matches = len(matches)
     if debug:
-        print("matching percentage = " + str( (num_good_Matches/MAX_FEATURES) * 100))
-    return (num_of_matches >= MAX_FEATURES,num_good_Matches)
+        print("matching percentage = " + str( (numgoodmatches/MAX_FEATURES) * 100))
+    return (num_of_matches >= MAX_FEATURES,numgoodmatches)
 
 def align(old,new,debug = False):
     keypoints1, descriptors1 = orb.detectAndCompute(cv2.cvtColor(old, cv2.COLOR_BGR2GRAY), None)
@@ -79,28 +67,26 @@ def togrey(image_dict,debug = False):
         cv2.imshow("extraction result",np.hstack([image,purple,white]))
     return { 'original' : image,'white' : white,'purple' : purple}
 
-def detect(new_image, old_image,fgmask,debug = False):
+def detect(new_image, old_image,debug = False):
     oldimage = extract(old_image)
     newimage = extract(new_image)
-    oldimage_g = togrey(oldimage)
-    newimage_g = togrey(newimage)
     # find the common purple part between the 2 images using bitwise xor
-    common_purple = cv2.bitwise_xor(fgmask, newimage_g.get('purple'))
-    common_purple = cv2.subtract(common_purple,oldimage_g.get('white'))
-    common_purple = cv2.subtract(common_purple,newimage_g.get('white'))
+    common_purple = cv2.bitwise_xor(old_image.get('purple'), newimage.get('purple'))
+    common_purple = cv2.subtract(common_purple,old_image.get('white'))
+    common_purple = cv2.subtract(common_purple,new_image.get('white'))
     # growth = new image && common part
-    growth = cv2.bitwise_and(newimage_g.get('purple'), common_purple)
+    growth = cv2.bitwise_and(newimage.get('purple'), common_purple)
     # death  = old image && common
-    death = cv2.bitwise_and(oldimage_g.get('purple'), common_purple)
+    death = cv2.bitwise_and(oldimage.get('purple'), common_purple)
     # bloching = white new image && purple old image
-    blotching = cv2.bitwise_and(oldimage_g.get('white'), oldimage_g.get('purple'))
+    blotching = cv2.bitwise_and(oldimage.get('white'), oldimage.get('purple'))
     # recovery = purple new image && white old image
-    recovery = cv2.bitwise_and(newimage_g.get('purple'), oldimage_g.get('white'))
+    recovery = cv2.bitwise_and(newimage.get('purple'), oldimage.get('white'))
     # apply opening morphology on results  to reduce noise
-    growth = cv2.morphologyEx(growth, cv2.MORPH_OPEN, KERNEL_ALLIGN)
-    death = cv2.morphologyEx(death, cv2.MORPH_OPEN, KERNEL_ALLIGN)
-    blotching = cv2.morphologyEx(blotching, cv2.MORPH_OPEN, KERNEL_ALLIGN)
-    recovery = cv2.morphologyEx(recovery, cv2.MORPH_OPEN, KERNEL_ALLIGN)
+    growth = cv2.morphologyEx(togrey(growth), cv2.MORPH_OPEN, KERNEL_ALLIGN)
+    death = cv2.morphologyEx(togrey(death), cv2.MORPH_OPEN, KERNEL_ALLIGN)
+    blotching = cv2.morphologyEx(togrey(blotching), cv2.MORPH_OPEN, KERNEL_ALLIGN)
+    recovery = cv2.morphologyEx(togrey(recovery), cv2.MORPH_OPEN, KERNEL_ALLIGN)
     # find the contours
     growth_cnts = cv2.findContours(growth, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
     death_cnts = cv2.findContours(death, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
