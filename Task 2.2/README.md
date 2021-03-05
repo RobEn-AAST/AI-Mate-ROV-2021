@@ -14,7 +14,7 @@ RECOMMENDED !!!!
 
 using conda installation
 ```bash
-conda create -name <enviroment name> -file enviroment.yml
+conda create --name <enviroment name> --file enviroment.yml
 ```
 or by using the requirements.txt file in your created virtual enviroment 
 
