@@ -1,6 +1,9 @@
 """ Module that contains functions , objects and constants used in task 2.2"""
-import numpy as np
+from math import pi
+from math import atan2
 from cv2 import cv2
+import numpy as np
+
 
 # Defining module Constants
 LOWER_PURPLE = np.array([130, 50, 90]) # Purple HSV lower boundry
@@ -21,10 +24,13 @@ AREA_TOLERANCE = 1000 # Difference in area tolerence
 bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
 orb = cv2.ORB_create(MAX_FEATURES)
 
-def check_for_matches(old,new,debug = False):
+def check_for_matches(old_image,new_image,debug = False):
     """ checks if 2 images match and returns if they match and the number of good matches """
     #detect matches and sort them
-    matches = bf.match(cv2.cvtColor(old, cv2.COLOR_BGR2GRAY),cv2.cvtColor(new, cv2.COLOR_BGR2GRAY))
+    matches = bf.match(
+                        cv2.cvtColor(old_image,cv2.COLOR_BGR2GRAY),
+                        cv2.cvtColor(new_image,cv2.COLOR_BGR2GRAY)
+                        )
     matches.sort(key=lambda x: x.distance, reverse=False)
   # Remove not so good matches
     numgoodmatches = int(len(matches) * GOOD_MATCH_PERCENT)
@@ -132,5 +138,37 @@ def adjust_distance(oldimage,frame):
         return "move forward !!!"
     else :
         return "move backward !!!"
+
+def find_angle(old_image,new_image):
+    """using homography to find rotation angle """
+    min_match_count = 10
+    sift = cv2.SIFT_create()
+    old_image = cv2.cvtColor(old_image, cv2.COLOR_BGR2GRAY)
+    new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
+    # find the keypoints and descriptors with SIFT
+    # find the keypoints and descriptors with SIFT
+    kp1, des1 = sift.detectAndCompute(old_image,None)
+    kp2, des2 = sift.detectAndCompute(new_image,None)
+    flann_index_kdtree = 1
+    index_params = dict(algorithm = flann_index_kdtree, trees = 5)
+    search_params = dict(checks = 50)
+    flann = cv2.FlannBasedMatcher(index_params, search_params)
+    matches = flann.knnMatch(des1,des2,k=2)
+# store all the good matches as per Lowe's ratio test.
+    good = []
+    for _m,_n in matches:
+        if _m.distance < 0.7* _n.distance:
+            good.append(_m)
+    _n = len(good)
+    if _n > min_match_count:
+        src_pts = np.float32([ kp1[_m.queryIdx].pt for _m in good ]).reshape(-1,1,2)
+        dst_pts = np.float32([ kp2[_m.trainIdx].pt for _m in good ]).reshape(-1,1,2)
+    else:
+        return 0
+    _m = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)[0]
+    if np.shape(_m) == ():
+        return 0
+    ## derive rotation angle from homography
+    return - atan2(_m[0,1], _m[0,0]) * 180 / pi
 
 # End of module
