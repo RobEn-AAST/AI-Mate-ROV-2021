@@ -12,7 +12,7 @@ class PipeRange:
 L_RANGE = PipeRange(0.08, 0.3)  # permitted range for the left blue pipe within X-axis
 R_RANGE = PipeRange(0.7, 0.92)  # permitted range for the right blue pipe within X-axis
 BLUE_PIPE_COLOR_RANGE = [[99, 173, 80], [112, 255, 174]]  # the HSV color range for the blue pipes
-PIPES_DISTANCE = [0.78, 0.62]  # permitted distance between both blue pipes [0]:max-distance, [1]:mis-distance
+PIPES_DISTANCE = [0.78, 0.62]  # permitted distance between both blue pipes [0]:max-distance, [1]:min-distance
 
 
 def color_detection(img_orig, values_min, values_max, show_detection=True):
