@@ -1,5 +1,5 @@
 """ Driver code for task 2.2"""
-from cv2 import cv2 as cv
+import cv2 as cv
 import object_detection_module as od
 
 # Initalize camera

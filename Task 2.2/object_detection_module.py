@@ -146,7 +146,6 @@ def find_angle(old_image,new_image):
     old_image = cv2.cvtColor(old_image, cv2.COLOR_BGR2GRAY)
     new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
     # find the keypoints and descriptors with SIFT
-    # find the keypoints and descriptors with SIFT
     kp1, des1 = sift.detectAndCompute(old_image,None)
     kp2, des2 = sift.detectAndCompute(new_image,None)
     flann_index_kdtree = 1

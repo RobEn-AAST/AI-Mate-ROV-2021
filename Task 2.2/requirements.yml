@@ -1,31 +1,15 @@
-`# This file may be used to create an environment using:
+# This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
-# platform: linux-64
-_libgcc_mutex=0.1=main
-astroid=2.5.1=pypi_0
-ca-certificates=2021.1.19=h06a4308_0
-certifi=2020.12.5=py36h06a4308_0
-isort=5.7.0=pypi_0
-lazy-object-proxy=1.5.2=pypi_0
-libedit=3.1.20191231=h14c3975_1
-libffi=3.2.1=hf484d3e_1007
-libgcc-ng=9.1.0=hdf63c60_0
-libstdcxx-ng=9.1.0=hdf63c60_0
-mccabe=0.6.1=pypi_0
-ncurses=6.2=he6710b0_1
+# platform: win-64
+certifi=2020.12.5=py36haa95532_0
 numpy=1.19.5=pypi_0
-opencv-python=4.5.1.48=pypi_0
-openssl=1.1.1j=h27cfd23_0
-pip=21.0.1=py36h06a4308_0
-pylint=2.7.2=pypi_0
-python=3.6.8=h0371630_0
-readline=7.0=h7b6447c_5
-setuptools=52.0.0=py36h06a4308_0
-sqlite=3.33.0=h62c20be_0
-tk=8.6.10=hbc83047_0
-toml=0.10.2=pypi_0
-typed-ast=1.4.2=pypi_0
+opencv-contrib-python=3.3.0.9=pypi_0
+pip=21.0.1=py36haa95532_0
+python=3.6.8=h9f7ef89_7
+setuptools=52.0.0=py36haa95532_0
+sqlite=3.33.0=h2a8f88b_0
+vc=14.2=h21ff451_1
+vs2015_runtime=14.27.29016=h5e58377_2
 wheel=0.36.2=pyhd3eb1b0_0
-wrapt=1.12.1=pypi_0
-xz=5.2.5=h7b6447c_0
-zlib=1.2.11=h7b6447c_3
+wincertstore=0.2=py36h7fe50ca_0
+zlib=1.2.11=h62dcd97_4

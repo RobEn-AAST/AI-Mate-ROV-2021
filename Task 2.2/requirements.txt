@@ -1,11 +1,4 @@
-astroid==2.5.1
 certifi==2020.12.5
-isort==5.7.0
-lazy-object-proxy==1.5.2
-mccabe==0.6.1
 numpy==1.19.5
-opencv-python==4.5.1.48
-pylint==2.7.2
-toml==0.10.2
-typed-ast==1.4.2
-wrapt==1.12.1
+opencv-contrib-python==3.3.0.9
+wincertstore==0.2
