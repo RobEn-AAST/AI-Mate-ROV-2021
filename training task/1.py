@@ -6,7 +6,6 @@ cv2.imwrite('C:/Users/moham/PycharmProjects/trial 2/gray.png', gray)
 redsq_gray = cv2.imread('gray.png')
 
 height, width, channel = redsq_gray.shape
-gray = cv2.resize(redsq_gray, (height, height), interpolation=cv2.INTER_AREA)
 upper_left = (width // 4, height // 4)
 bottom_right = (width * 3 // 4, height * 3 // 4)
 cv2.rectangle(redsq_gray, upper_left, bottom_right, (0, 0, 255), -1)
