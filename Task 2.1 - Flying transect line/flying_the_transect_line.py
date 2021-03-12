@@ -169,4 +169,3 @@ def read_video():
 
 read_video()  # this function is responsible for reading video/camera frames and call every other function
 cv.destroyAllWindows()
-
