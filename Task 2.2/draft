@@ -1,3 +1,0 @@
-import cv2
-import object_detection_module as od
-
