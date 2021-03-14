@@ -9,10 +9,14 @@ class PipeRange:
         self.Yco = y_co
 
 
+''' CONSTANTS '''
 L_RANGE = PipeRange(0.08, 0.3)  # permitted range for the left blue pipe within X-axis
 R_RANGE = PipeRange(0.7, 0.92)  # permitted range for the right blue pipe within X-axis
 BLUE_PIPE_COLOR_RANGE = [[99, 173, 80], [112, 255, 174]]  # the HSV color range for the blue pipes
 PIPES_DISTANCE = [0.78, 0.62]  # permitted distance between both blue pipes [0]:max-distance, [1]:min-distance
+CAPTURE_FROM = "vid.mp4"  # path for capturing the video. change it to int(0), int(1)...
+# to get frames from an external camera.
+''' ^^^^^^^^^ '''
 
 
 def color_detection(img_orig, values_min, values_max, show_detection=True):
@@ -139,7 +143,7 @@ def read_video():
     this function is responsible for reading the video/camera frame by frame
     and call multiple functions. May consider it as the main function
     """
-    vid = cv.VideoCapture("vid.mp4")
+    vid = cv.VideoCapture(CAPTURE_FROM)
     while True:
         readable, frame = vid.read()
         if not readable:
