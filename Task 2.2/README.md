@@ -13,12 +13,12 @@ Using image recognition to determine the health of a coral colony by comparing i
 
 1 - using conda installation to install the virtual enviroment
 ```bash
-conda create --name <enviroment name> --file requirements.yml
+conda create --name <enviroment name> --file requirments\\requirements.yml
 ```
 2 -  by using the requirements.txt file in your created virtual enviroment add the needed libraries ( open-cv ) 
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirments\\requirements.txt
 ```
 
 ## Usage
