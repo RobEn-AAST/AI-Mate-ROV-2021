@@ -3,6 +3,14 @@ This Repo houses all missions of mate 2021 for the AI team
 
 ### How to use
 
+clone the repo first:
+
+`git clone https://github.com/RobEn-AAST/AI-Mate-ROV-2021.git`
+
+or pull any changes done since you last checked:
+
+`git pull`
+
 - Each folder houses a Mission and should be named after that mission's number-title
     - example : ( Task 2.2 - health of the coral colony).
 
