@@ -41,7 +41,7 @@ def get_contours(masked_img, frame, draw_contours=False):
 
     :return: the coordinates of left and right blue pipes in two 2D arrays.
     """
-    contours, _ = cv.findContours(masked_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+    contours, hierarchy = cv.findContours(masked_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     mask_shape = masked_img.shape
     left_coordinate, right_coordinate = \
         np.array([[0, mask_shape[0]+10], [0, 0]]), np.array([[0,  mask_shape[0]+10], [0, 0]])
