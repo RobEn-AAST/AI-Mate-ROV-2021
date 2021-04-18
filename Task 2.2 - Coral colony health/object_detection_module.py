@@ -1,28 +1,34 @@
-""" Module that contains functions , objects and constants used in task 2.2"""
-from math import pi
-from math import atan2
+""" 
+Module that contains functions , objects and constants used in task 2.2
+"""
+from math import pi,atan2
 from cv2 import cv2
-import numpy as np
+from numpy import array,ones,uint8,hstack,float32,shape
 
 
 # Defining module Constants
-LOWER_PURPLE = np.array([130, 50, 90]) # Purple HSV lower boundry
-UPPER_PURPLE = np.array([170, 255, 255]) # Purple HSV upper boundry
-LOWER_WHITE = np.array([0, 6, 180]) # White HSV lower boundry
-UPPER_WHITE = np.array([255, 255, 255]) # White HSV upper boundry
-KERNEL_ALLIGN = np.ones((5, 5), np.uint8) # Kernel used for opening effect
+LOWER_PURPLE = array([130, 50, 90]) # Purple HSV lower boundry
+UPPER_PURPLE = array([170, 255, 255]) # Purple HSV upper boundry
+LOWER_WHITE = array([0, 6, 180]) # White HSV lower boundry
+UPPER_WHITE = array([255, 255, 255]) # White HSV upper boundry
+KERNEL_ALLIGN = ones((5, 5), uint8) # Kernel used for opening effect
 MAX_FEATURES = 100 # Maximum number of features to be detected
 GOOD_MATCH_PERCENT = 0.15 # Matching tolerence
 AREA = 250 # Minimum contour area
-GREEN = (0, 255, 0) # Green BGR code
-YELLOW = (0, 255, 255) # Yellow BGR code
-RED = (0, 0, 255) # Red BGR code
-BLUE = (255, 0, 0) # Blue BGR code
+COLORS = {
+    "GREEN" : (0, 255, 0),
+    "YELLOW" : (0, 255, 255),
+    "RED" : (0, 0, 255),
+    "BLUE" : (255, 0, 0)
+    }
 AREA_TOLERANCE = 1000 # Difference in area tolerence
+MIN_MATCH_COUNT = 10 # Matching Tolerence
+
 
 # Objects used for feature matching
+flann = cv2.FlannBasedMatcher(dict(algorithm = 1, trees = 5), dict(checks = 50))
 bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
-orb = cv2.ORB_create(MAX_FEATURES)
+sift = cv2.SIFT_create()
 
 def check_for_matches(old_image,new_image,debug = False):
     """ checks if 2 images match and returns if they match and the number of good matches """
@@ -53,7 +59,7 @@ def extract(image,debug = False):
     white = cv2.morphologyEx(white, cv2.MORPH_OPEN,KERNEL_ALLIGN)
    # Print debug info if debug mode is on
     if debug:
-        cv2.imshow("extraction result",np.hstack([image,purple,white]))
+        cv2.imshow("extraction result",hstack([image,purple,white]))
     return { 'original' : image,'white' : white,'purple' : purple}
 
 def to_black_and_white(image_dict,debug = False):
@@ -65,7 +71,7 @@ def to_black_and_white(image_dict,debug = False):
     white = cv2.threshold(white, 127, 255, cv2.THRESH_BINARY)[1]
    # Print debug info if debug mode is on
     if debug:
-        cv2.imshow("extraction result",np.hstack([image,purple,white]))
+        cv2.imshow("extraction result",hstack([image,purple,white]))
     return { 'original' : image,'white' : white,'purple' : purple}
 
 def detect(new_image, old_image,debug = False):
@@ -74,17 +80,17 @@ def detect(new_image, old_image,debug = False):
     oldimage = extract(old_image)
     newimage = extract(new_image)
     # find the common purple part between the 2 images using bitwise xor
-    common_purple = cv2.bitwise_xor(old_image.get('purple'), newimage.get('purple'))
-    common_purple = cv2.subtract(common_purple,old_image.get('white'))
-    common_purple = cv2.subtract(common_purple,new_image.get('white'))
+    common_purple = cv2.bitwise_xor(old_image["purple"], newimage["purple"])
+    common_purple = cv2.subtract(common_purple,old_image["white"])
+    common_purple = cv2.subtract(common_purple,new_image["white"])
     # growth = new image && common part
-    growth = cv2.bitwise_and(newimage.get('purple'), common_purple)
+    growth = cv2.bitwise_and(newimage["purple"], common_purple)
     # death  = old image && common
-    death = cv2.bitwise_and(oldimage.get('purple'), common_purple)
+    death = cv2.bitwise_and(oldimage["purple"], common_purple)
     # bloching = white new image && purple old image
-    blotching = cv2.bitwise_and(oldimage.get('white'), oldimage.get('purple'))
+    blotching = cv2.bitwise_and(oldimage["white"], oldimage["purple"])
     # recovery = purple new image && white old image
-    recovery = cv2.bitwise_and(newimage.get('purple'), oldimage.get('white'))
+    recovery = cv2.bitwise_and(newimage["purple"], oldimage["white"])
     # apply opening morphology on results  to reduce noise
     growth = cv2.morphologyEx(to_black_and_white(growth), cv2.MORPH_OPEN, KERNEL_ALLIGN)
     death = cv2.morphologyEx(to_black_and_white(death), cv2.MORPH_OPEN, KERNEL_ALLIGN)
@@ -118,7 +124,7 @@ def filter_contours(image,contours,color,text,area = 150):
 def remove_back_ground(image):
     """ utilizes the color extraction function extract() to remove background from image """
     parts = extract(image,debug=False)
-    return cv2.bitwise_xor(parts.get('purple'),parts.get('white'))
+    return cv2.bitwise_xor(parts["purple"],parts["white"])
 
 def get_colony_area(image):
     """ draws rectangle around the white chunk of color and calculate its area """
@@ -141,17 +147,11 @@ def adjust_distance(oldimage,frame):
 
 def find_angle(old_image,new_image):
     """using homography to find rotation angle """
-    min_match_count = 10
-    sift = cv2.SIFT_create()
     old_image = cv2.cvtColor(old_image, cv2.COLOR_BGR2GRAY)
     new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
     # find the keypoints and descriptors with SIFT
     kp1, des1 = sift.detectAndCompute(old_image,None)
     kp2, des2 = sift.detectAndCompute(new_image,None)
-    flann_index_kdtree = 1
-    index_params = dict(algorithm = flann_index_kdtree, trees = 5)
-    search_params = dict(checks = 50)
-    flann = cv2.FlannBasedMatcher(index_params, search_params)
     matches = flann.knnMatch(des1,des2,k=2)
 # store all the good matches as per Lowe's ratio test.
     good = []
@@ -159,13 +159,13 @@ def find_angle(old_image,new_image):
         if _m.distance < 0.7* _n.distance:
             good.append(_m)
     _n = len(good)
-    if _n > min_match_count:
-        src_pts = np.float32([ kp1[_m.queryIdx].pt for _m in good ]).reshape(-1,1,2)
-        dst_pts = np.float32([ kp2[_m.trainIdx].pt for _m in good ]).reshape(-1,1,2)
+    if _n > MIN_MATCH_COUNT:
+        src_pts = float32([ kp1[_m.queryIdx].pt for _m in good ]).reshape(-1,1,2)
+        dst_pts = float32([ kp2[_m.trainIdx].pt for _m in good ]).reshape(-1,1,2)
     else:
         return 0
     _m = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)[0]
-    if np.shape(_m) == ():
+    if shape(_m) == ():
         return 0
     ## derive rotation angle from homography
     return - atan2(_m[0,1], _m[0,0]) * 180 / pi

@@ -1,6 +1,6 @@
 """ Driver code for task 2.2"""
 import cv2 as cv
-import object_detection_module as od
+from object_detection_module import check_for_matches,detect,filter_contours,COLORS,AREA
 
 # Initalize camera
 cap = cv.VideoCapture(0)
@@ -24,19 +24,19 @@ contours = { 'growth_cnts' : [],'death_cnts' : [],'blotching_cnts' : [] ,'recove
 while True:
     # Capture webcame frame
     frame = cv.flip(cap.read()[1],1)
-    is_matching,number_of_matches = od.check_for_matches(frame,old_image,debug = DEBUG)
+    is_matching,number_of_matches = check_for_matches(frame,old_image,debug = DEBUG)
     # If the current frame matches the old image
     if is_matching:
         #Increment the sample counter by 1
         SAMPLE_COUNTER += 1
         if SAMPLE_COUNTER > SAMPLING_RATE:
-            contours = od.detect(frame,old_image,debug = DEBUG) # Detect changes
+            contours = detect(frame,old_image,debug = DEBUG) # Detect changes
             SAMPLE_COUNTER = 0 # Reset the sampling counter
             #filter contours to get only large ones which eliminates contours caused by noise
-            od.filter_contours(frame,contours.get('growth_cnts'),od.GREEN,"growth",area = od.AREA)
-            od.filter_contours(frame,contours.get('death_cnts'),od.YELLOW,"death",area = od.AREA)
-            od.filter_contours(frame,contours.get('blotching_cnts'),od.RED,"blotching",area=od.AREA)
-            od.filter_contours(frame,contours.get('recovery_cnts'),od.BLUE,"recovery",area=od.AREA)
+            filter_contours(frame,contours["growth_cnts"],COLORS["GREEN"],"growth",area = AREA)
+            filter_contours(frame,contours["death_cnts"],COLORS["YELLOW"],"death",area = AREA)
+            filter_contours(frame,contours["blotching_cnts"],COLORS["RED"],"blotching",area=AREA)
+            filter_contours(frame,contours["recovery_cnts"],COLORS["BLUE"],"recovery",area=AREA)
     else:
         SAMPLE_COUNTER = 0 # Reset sample counter
         contours = {'growth_cnts':[],'death_cnts':[],'blotching_cnts' :[],'recovery_cnts':[]}
