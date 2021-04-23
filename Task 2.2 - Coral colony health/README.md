@@ -1,6 +1,6 @@
 # Task 2.2
 
-Using image recognition to determine the health of a coral colony by comparing its current
+Using image recognition to determine the health of a coral colony by comparing its current to a picture taken in the past
 
 ## Requirements
 
