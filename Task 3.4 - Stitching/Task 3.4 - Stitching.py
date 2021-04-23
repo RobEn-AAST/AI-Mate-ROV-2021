@@ -94,9 +94,7 @@ def get_contours(image, img_contour, i):
                     image_name = "img_{}.png".format(i)
                     cv2.imwrite(image_name, cropped_contour)
                     print("{} written!".format(image_name))
-                    u = 1
-
-    return u
+                    return 1
 
 
 while True:
@@ -135,3 +133,4 @@ while True:
 
     if cv2.waitKey(1) & 0xFF == ord('q') & 0xFF == ord('27'):
         break
+
