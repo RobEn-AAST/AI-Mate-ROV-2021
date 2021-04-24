@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+import math
 
 
 class PipeRange:
@@ -41,7 +42,7 @@ def get_contours(masked_img, frame, draw_contours=False):
 
     :return: the coordinates of left and right blue pipes in two 2D arrays.
     """
-    contours, hierarchy = cv.findContours(masked_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+    contours, _ = cv.findContours(masked_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     mask_shape = masked_img.shape
     left_coordinate, right_coordinate = \
         np.array([[0, mask_shape[0]+10], [0, 0]]), np.array([[0,  mask_shape[0]+10], [0, 0]])
@@ -120,6 +121,23 @@ def highlight_pipes(frame, left_co, right_co):
     cv.circle(frame, (midpoint_left[0], midpoint_left[1]), 10, (204, 0, 204), -1)
 
     # return the two mid-points of the two blue pipes
+    #  cv.line(frame, (midpoint_right[0], midpoint_right[1]), (midpoint_left[0], midpoint_left[1]), (250, 153, 200), 3)
+
+    cam_mid = [frame.shape[1] // 2, frame.shape[0] // 2]
+    dist_left = cam_mid[0]-midpoint_left[0]
+    dist_right = midpoint_right[0] - cam_mid[0]
+    cv.circle(frame, (cam_mid[0], cam_mid[1]), 10, (250, 0, 0), -1)
+    lft_color = (255, 0, 0)
+    rht_color = (255, 0, 0)
+
+    if dist_left > (PIPES_DISTANCE[0] * frame.shape[1])*0.54:
+        lft_color = (0, 0, 255)
+    if dist_right > (PIPES_DISTANCE[0] * frame.shape[1])*0.54:
+        rht_color = (0, 0, 255)
+
+    cv.line(frame, (cam_mid[0], cam_mid[1]), (midpoint_right[0], midpoint_right[1]), rht_color, 3)
+    cv.line(frame, (cam_mid[0], cam_mid[1]), (midpoint_left[0], midpoint_left[1]), lft_color, 3)
+
     return midpoint_right, midpoint_left
 
 
@@ -148,7 +166,7 @@ def read_video():
         readable, frame = vid.read()
         if not readable:
             break
-        cv.imshow("Camera Frames", frame)
+        # cv.imshow("Camera Frames", frame)
 
         # this function detects the pipes by there color and creates and mask for the detection
         mask_blue = \
@@ -156,6 +174,8 @@ def read_video():
 
         # this function detects the blue pipes and draw guides for visualization
         midpoint_right, midpoint_left = detect_pipes(frame, mask_blue)
+
+
 
         # this function is fully responsible for printing/sending commands through serial port
         send_commands(frame, midpoint_right, midpoint_left)
