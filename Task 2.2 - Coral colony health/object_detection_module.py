@@ -11,18 +11,17 @@ Prequisites :-
 3 - math -> if not already included while installing python
 
 """
-from math import pi,atan2
+from math import atan2,degrees
 from cv2 import cv2
-from numpy import array,ones,uint8,hstack,float32,shape
-from numpy.core.numeric import False_
+import numpy as np
 
 
 # Defining module Constants
-LOWER_PURPLE = array([130, 50, 90]) # Purple HSV lower boundry
-UPPER_PURPLE = array([170, 255, 255]) # Purple HSV upper boundry
-LOWER_WHITE = array([0, 6, 180]) # White HSV lower boundry
-UPPER_WHITE = array([255, 255, 255]) # White HSV upper boundry
-KERNEL_ALLIGN = ones((5, 5), uint8) # Kernel used for opening effect
+LOWER_PURPLE = np.array([130, 50, 90]) # Purple HSV lower boundry
+UPPER_PURPLE = np.array([170, 255, 255]) # Purple HSV upper boundry
+LOWER_WHITE = np.array([0, 6, 180]) # White HSV lower boundry
+UPPER_WHITE = np.array([255, 255, 255]) # White HSV upper boundry
+KERNEL_ALLIGN = np.ones((5, 5), np.uint8) # Kernel used for opening effect
 MAX_FEATURES = 100 # Maximum number of features to be detected
 GOOD_MATCH_PERCENT = 0.15 # Matching tolerence
 AREA = 250 # Minimum contour area
@@ -104,7 +103,7 @@ outputs :-
     white = cv2.morphologyEx(white, cv2.MORPH_OPEN,KERNEL_ALLIGN)
    # Print debug info if debug mode is on
     if debug:
-        cv2.imshow("extraction result",hstack([image,purple,white]))
+        cv2.imshow("extraction result",np.hstack([image,purple,white]))
     return { 'original' : image,'white' : white,'purple' : purple}
 
 def to_black_and_white(image_dict,debug = False):
@@ -133,7 +132,7 @@ arguments :-
     white = cv2.threshold(white, 127, 255, cv2.THRESH_BINARY)[1]
    # Print debug info if debug mode is on
     if debug:
-        cv2.imshow("extraction result",hstack([image,purple,white]))
+        cv2.imshow("extraction result",np.hstack([image,purple,white]))
     return { 'original' : image,'white' : white,'purple' : purple}
 
 def detect(new_image, old_image,debug = False):
@@ -157,8 +156,8 @@ outputs :-
     - recovery contours.
     
     """
-    oldimage = extract(old_image)
-    newimage = extract(new_image)
+    oldimage = extract(adjust_angle(frame=old_image))
+    newimage = extract(adjust_angle(frame=new_image))
     # find the diff purple part between the 2 images using bitwise xor
     diff_purple = cv2.bitwise_xor(old_image["purple"], newimage["purple"])
     diff_purple = cv2.subtract(diff_purple,old_image["white"])
@@ -282,49 +281,87 @@ outputs :-
     old_image_d = get_colony_area(old_image)
     return frame_d/old_image_d
 
-def find_angle(old_image,new_image):
-    """
-using homography to find rotation angle 
+def simplest_cb(img, percent=1):
+    out_channels = []
+    cumstops = (
+        img.shape[0] * img.shape[1] * percent / 200.0,
+        img.shape[0] * img.shape[1] * (1 - percent / 200.0)
+    )
+    for channel in cv2.split(img):
+        cumhist = np.cumsum(cv2.calcHist([channel], [0], None, [256], (0,256)))
+        low_cut, high_cut = np.searchsorted(cumhist, cumstops)
+        lut = np.concatenate((
+            np.zeros(low_cut),
+            np.around(np.linspace(0, 255, high_cut - low_cut + 1)),
+            255 * np.ones(255 - high_cut)
+        ))
+        out_channels.append(cv2.LUT(channel, lut.astype('uint8')))
+    return cv2.merge(out_channels)
 
-arguments :-
-------------
 
-1 - old_image -> an numpy array representing the old image ( can be read using open cv ).
-2 - frame -> an numpy array representing the current frame in the camera stream ( can be read using open cv ).
+def rotate(image, angle, center=None, scale=1.0):
+    (h, w) = image.shape[:2]
 
-    
-outputs :-
-----------
+    if center is None:
+        center = (w / 2, h / 2)
 
-- Rotation angle between old image and current frame.
-    
-    """
-    old_image = cv2.cvtColor(old_image, cv2.COLOR_BGR2GRAY)
-    new_image = cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
-    # find the keypoints and descriptors with SIFT
-    kp1, des1 = sift.detectAndCompute(old_image,None)
-    kp2, des2 = sift.detectAndCompute(new_image,None)
-    matches = flann.knnMatch(des1,des2,k=2)
-# store all the good matches as per Lowe's ratio test.
-    good = []
-    for _m,_n in matches:
-        if _m.distance < 0.7* _n.distance:
-            good.append(_m)
-    _n = len(good)
-    if _n > MIN_MATCH_COUNT:
-        src_pts = float32([ kp1[_m.queryIdx].pt for _m in good ]).reshape(-1,1,2)
-        dst_pts = float32([ kp2[_m.trainIdx].pt for _m in good ]).reshape(-1,1,2)
-    else:
-        return 0
-    _m = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)[0]
-    if shape(_m) == ():
-        return -1
-    ## derive rotation angle from homography
-    return - atan2(_m[0,1], _m[0,0]) * 180 / pi
+    # Perform the rotation
+    M = cv2.getRotationMatrix2D(center, angle, scale)
+    rotated = cv2.warpAffine(image, M, (w, h))
 
-def adjust_angle(old_image,frame):
-    #put your code here ya samir
-    pass
+    return rotated
+
+
+def GetAngleOfLineBetweenTwoPoints(p1, p2):
+    xDiff = p2[0] - p1[0]
+    yDiff = p2[1] - p1[1]
+    return degrees(atan2(yDiff, xDiff))
+
+
+def adjust_angle(frame, radius=9, iter=5, debug=False):
+    minumum_color_array = []
+    orig = frame.copy()
+    gray = cv2.GaussianBlur(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), (radius, radius), 0)
+    (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(gray)
+    image = orig.copy()
+    cv2.circle(image, minLoc, radius, (255, 0, 0), 2)
+    cv2.circle(image, minLoc, radius, (255, 255, 255), cv2.FILLED)
+    minumum_color_array.append(minLoc)
+    if debug:
+        print(minLoc)
+    if debug:
+        cv2.imshow("cen", image)
+        cv2.waitKey(0)
+    average_list = []
+    min_point = minumum_color_array[0]
+    for (x1,y1) in minumum_color_array:
+        for (x2,y2) in minumum_color_array:
+            if (x1,y1) == (x2,y2) or x1 > x2 or y1 < y2:
+                continue
+            angle = -GetAngleOfLineBetweenTwoPoints((x1,y1), (x2,y2))
+            if debug:
+                print("points", x1, x2, y1, y2)
+                print("check", x2 - x1, y1 - y2)
+                print(angle)
+            if min_point[0] < x1:
+                min_point = (x1,y1)
+            average_list.append(angle)
+    good_angles = (x > 45 for x in average_list)
+    average_angle = sum(good_angles) / good_angles.count()
+    final = rotate(frame, -average_angle, min_point)
+    if debug:
+        print("avgang =", average_angle)
+        cv2.imshow("final", final)
+        cv2.waitKey(0)
+    return final
+
+
+def adjust_image(img , debug = False):
+    final = adjust_angle(simplest_cb(img, 1), debug=debug)
+    if debug:
+        cv2.imshow("final", final)
+        cv2.waitKey(0)
+    return final
     
 
 

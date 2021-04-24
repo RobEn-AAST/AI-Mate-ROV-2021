@@ -2,7 +2,6 @@
 import cv2 as cv
 from object_detection_module import COLORS,AREA
 from object_detection_module import check_for_matches,detect,print_contours,adjust_distance
-from Darkest import adjust_image
 # Initalize camera
 cap = cv.VideoCapture(0)
 
@@ -26,7 +25,6 @@ contours = { 'growth_cnts' : [],'death_cnts' : [],'blotching_cnts' : [] ,'recove
 while True:
     # Capture webcame frame
     frame = cv.flip(cap.read()[1],1)
-    frame = adjust_image(frame)
     is_matching,number_of_matches = check_for_matches(frame,old_image,debug = DEBUG)
     # If the current frame matches the old image
     if is_matching:
