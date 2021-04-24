@@ -11,36 +11,35 @@ Prequisites :-
 3 - math -> if not already included while installing python
 
 """
-from math import atan2,degrees
+from math import atan2, degrees
 from cv2 import cv2
 import numpy as np
 
-
 # Defining module Constants
-LOWER_PURPLE = np.array([130, 50, 90]) # Purple HSV lower boundry
-UPPER_PURPLE = np.array([170, 255, 255]) # Purple HSV upper boundry
-LOWER_WHITE = np.array([0, 6, 180]) # White HSV lower boundry
-UPPER_WHITE = np.array([255, 255, 255]) # White HSV upper boundry
-KERNEL_ALLIGN = np.ones((5, 5), np.uint8) # Kernel used for opening effect
-MAX_FEATURES = 100 # Maximum number of features to be detected
-GOOD_MATCH_PERCENT = 0.15 # Matching tolerence
-AREA = 250 # Minimum contour area
+LOWER_PURPLE = np.array([130, 50, 90])  # Purple HSV lower boundry
+UPPER_PURPLE = np.array([170, 255, 255])  # Purple HSV upper boundry
+LOWER_WHITE = np.array([0, 6, 180])  # White HSV lower boundry
+UPPER_WHITE = np.array([255, 255, 255])  # White HSV upper boundry
+KERNEL_ALLIGN = np.ones((5, 5), np.uint8)  # Kernel used for opening effect
+MAX_FEATURES = 100  # Maximum number of features to be detected
+GOOD_MATCH_PERCENT = 0.15  # Matching tolerence
+AREA = 250  # Minimum contour area
 COLORS = {
-    "GREEN" : (0, 255, 0),
-    "YELLOW" : (0, 255, 255),
-    "RED" : (0, 0, 255),
-    "BLUE" : (255, 0, 0)
-    }
-AREA_TOLERANCE = 1000 # Difference in area tolerence
-MIN_MATCH_COUNT = 10 # Matching Tolerence
-
+    "GREEN": (0, 255, 0),
+    "YELLOW": (0, 255, 255),
+    "RED": (0, 0, 255),
+    "BLUE": (255, 0, 0)
+}
+AREA_TOLERANCE = 1000  # Difference in area tolerence
+MIN_MATCH_COUNT = 10  # Matching Tolerence
 
 # Objects used for feature matching
-flann = cv2.FlannBasedMatcher(dict(algorithm = 1, trees = 5), dict(checks = 50))
+flann = cv2.FlannBasedMatcher(dict(algorithm=1, trees=5), dict(checks=50))
 bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
 sift = cv2.SIFT_create()
 
-def check_for_matches(old_image,new_image,debug = False):
+
+def check_for_matches(old_image, new_image, debug=False):
     """ 
 checks if 2 images match and returns if they match and the number of good matches
     
@@ -58,23 +57,23 @@ outputs :-
 2 - the number of good matches
 
     """
-    #detect matches and sort them
+    # detect matches and sort them
     matches = bf.match(
-                        cv2.cvtColor(old_image,cv2.COLOR_BGR2GRAY),
-                        cv2.cvtColor(new_image,cv2.COLOR_BGR2GRAY)
-                        )
+        cv2.cvtColor(old_image, cv2.COLOR_BGR2GRAY),
+        cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
+    )
     matches.sort(key=lambda x: x.distance, reverse=False)
-  # Remove not so good matches
+    # Remove not so good matches
     numgoodmatches = int(len(matches) * GOOD_MATCH_PERCENT)
     matches = matches[:numgoodmatches]
     num_of_matches = len(matches)
-   # Print debug info if debug mode is on
+    # Print debug info if debug mode is on
     if debug:
-        print("matching percentage = " + str( (numgoodmatches/MAX_FEATURES) * 100))
-    return (num_of_matches >= MAX_FEATURES,numgoodmatches)
+        print("matching percentage = " + str((numgoodmatches / MAX_FEATURES) * 100))
+    return (num_of_matches >= MAX_FEATURES, numgoodmatches)
 
 
-def extract(image,debug = False):
+def extract(image, debug=False):
     """ 
 Python function that extracts purple and white parts out of an image 
     
@@ -94,19 +93,20 @@ outputs :-
     
     
     """
-    purple_mask = cv2.inRange(image, LOWER_PURPLE,UPPER_PURPLE)
+    purple_mask = cv2.inRange(image, LOWER_PURPLE, UPPER_PURPLE)
     white_mask = cv2.inRange(image, LOWER_WHITE, UPPER_WHITE)
-    white  = cv2.bitwise_and(image, image, mask=white_mask)
+    white = cv2.bitwise_and(image, image, mask=white_mask)
     purple = cv2.bitwise_and(image, image, mask=purple_mask)
     white[white_mask > 0] = (255, 255, 255)
     purple[purple_mask > 0] = (255, 255, 255)
-    white = cv2.morphologyEx(white, cv2.MORPH_OPEN,KERNEL_ALLIGN)
-   # Print debug info if debug mode is on
+    white = cv2.morphologyEx(white, cv2.MORPH_OPEN, KERNEL_ALLIGN)
+    # Print debug info if debug mode is on
     if debug:
-        cv2.imshow("extraction result",np.hstack([image,purple,white]))
-    return { 'original' : image,'white' : white,'purple' : purple}
+        cv2.imshow("extraction result", np.hstack([image, purple, white]))
+    return {'original': image, 'white': white, 'purple': purple}
 
-def to_black_and_white(image_dict,debug = False):
+
+def to_black_and_white(image_dict, debug=False):
     """ 
 Python function that changes image to black and white 
     
@@ -130,12 +130,13 @@ arguments :-
     white = cv2.cvtColor(image_dict['purple'], cv2.COLOR_BGR2GRAY)
     purple = cv2.threshold(purple, 127, 255, cv2.THRESH_BINARY)[1]
     white = cv2.threshold(white, 127, 255, cv2.THRESH_BINARY)[1]
-   # Print debug info if debug mode is on
+    # Print debug info if debug mode is on
     if debug:
-        cv2.imshow("extraction result",np.hstack([image,purple,white]))
-    return { 'original' : image,'white' : white,'purple' : purple}
+        cv2.imshow("extraction result", np.hstack([image, purple, white]))
+    return {'original': image, 'white': white, 'purple': purple}
 
-def detect(new_image, old_image,debug = False):
+
+def detect(new_image, old_image, debug=False):
     """ 
 detects the changes in the new image returning contours at their places
     
@@ -156,12 +157,12 @@ outputs :-
     - recovery contours.
     
     """
-    oldimage = extract(adjust_angle(frame=old_image))
-    newimage = extract(adjust_angle(frame=new_image))
+
+    newimage = extract(adjust_angle(frame=new_image, Sure_Image=True))
     # find the diff purple part between the 2 images using bitwise xor
     diff_purple = cv2.bitwise_xor(old_image["purple"], newimage["purple"])
-    diff_purple = cv2.subtract(diff_purple,old_image["white"])
-    diff_purple = cv2.subtract(diff_purple,new_image["white"])
+    diff_purple = cv2.subtract(diff_purple, old_image["white"])
+    diff_purple = cv2.subtract(diff_purple, new_image["white"])
     # growth = new image && common part
     growth = cv2.bitwise_and(newimage["purple"], diff_purple)
     # death = old image && common
@@ -182,20 +183,21 @@ outputs :-
     recovery_cnts = cv2.findContours(recovery, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
     # draw the contours on the preview image if debug mode is on
     if debug:
-        cv2.imshow("common purple",diff_purple)
-        cv2.imshow("growth",growth)
-        cv2.imshow("death",death)
-        cv2.imshow("blotching",blotching)
-        cv2.imshow("recovery",recovery)
-    return { 
-        'growth_cnts' : growth_cnts,
-        'death_cnts' : death_cnts,
-        'blotching_cnts' : blotching_cnts,
-        'recovery_cnts' : recovery_cnts
-        }
+        cv2.imshow("common purple", diff_purple)
+        cv2.imshow("growth", growth)
+        cv2.imshow("death", death)
+        cv2.imshow("blotching", blotching)
+        cv2.imshow("recovery", recovery)
+    return {
+        'growth_cnts': growth_cnts,
+        'death_cnts': death_cnts,
+        'blotching_cnts': blotching_cnts,
+        'recovery_cnts': recovery_cnts
+    }
 
-def print_contours(image,contours,color,text,area = 150):
-    out  = image.copy()
+
+def print_contours(image, contours, color, text, area=150):
+    out = image.copy()
     """ 
 Python function that draw the contours according to a tolerence area
     
@@ -219,8 +221,9 @@ outputs :-
             approx = cv2.approxPolyDP(_c, 0.02 * peri, True)
             _x, _y, _w, _h = cv2.boundingRect(approx)
             cv2.rectangle(out, (_x, _y), (_x + _w, _y + _h), color, 2)
-            cv2.putText(out, text , (_x + _w + 20, _y + 20), cv2.FONT_HERSHEY_COMPLEX,0.7,color,2)
+            cv2.putText(out, text, (_x + _w + 20, _y + 20), cv2.FONT_HERSHEY_COMPLEX, 0.7, color, 2)
     return out
+
 
 def remove_back_ground(image):
     """ 
@@ -237,8 +240,9 @@ outputs :-
 - The image after removing the background.
     
 """
-    parts = extract(image,debug=False)
-    return cv2.bitwise_xor(parts["purple"],parts["white"])
+    parts = extract(image, debug=False)
+    return cv2.bitwise_xor(parts["purple"], parts["white"])
+
 
 def get_colony_area(image):
     """ 
@@ -255,13 +259,14 @@ outputs :-
 - A number representing the colony area.
     
     """
-    image  = cv2.cvtColor(remove_back_ground(image),cv2.COLOR_BGR2GRAY)
-    cv2.imwrite("result1.png",image)
+    image = cv2.cvtColor(remove_back_ground(image), cv2.COLOR_BGR2GRAY)
+    cv2.imwrite("result1.png", image)
     contours = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
-    _c = max(contours, key = cv2.contourArea)
+    _c = max(contours, key=cv2.contourArea)
     return float(cv2.contourArea(_c))
 
-def adjust_distance(old_image,frame):
+
+def adjust_distance(old_image, frame):
     """ 
 compares 2 objects in 2 images and returns the difference in size between the 2 objects in them
     
@@ -279,7 +284,8 @@ outputs :-
     """
     frame_d = get_colony_area(frame)
     old_image_d = get_colony_area(old_image)
-    return frame_d/old_image_d
+    return frame_d / old_image_d
+
 
 def simplest_cb(img, percent=1):
     out_channels = []
@@ -288,7 +294,7 @@ def simplest_cb(img, percent=1):
         img.shape[0] * img.shape[1] * (1 - percent / 200.0)
     )
     for channel in cv2.split(img):
-        cumhist = np.cumsum(cv2.calcHist([channel], [0], None, [256], (0,256)))
+        cumhist = np.cumsum(cv2.calcHist([channel], [0], None, [256], (0, 256)))
         low_cut, high_cut = np.searchsorted(cumhist, cumstops)
         lut = np.concatenate((
             np.zeros(low_cut),
@@ -297,7 +303,6 @@ def simplest_cb(img, percent=1):
         ))
         out_channels.append(cv2.LUT(channel, lut.astype('uint8')))
     return cv2.merge(out_channels)
-
 
 def rotate(image, angle, center=None, scale=1.0):
     (h, w) = image.shape[:2]
@@ -318,51 +323,105 @@ def GetAngleOfLineBetweenTwoPoints(p1, p2):
     return degrees(atan2(yDiff, xDiff))
 
 
-def adjust_angle(frame, radius=9, iter=5, debug=False):
-    minumum_color_array = []
-    orig = frame.copy()
-    gray = cv2.GaussianBlur(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), (radius, radius), 0)
-    (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(gray)
-    image = orig.copy()
-    cv2.circle(image, minLoc, radius, (255, 0, 0), 2)
-    cv2.circle(image, minLoc, radius, (255, 255, 255), cv2.FILLED)
-    minumum_color_array.append(minLoc)
-    if debug:
-        print(minLoc)
-    if debug:
+def adjust_angle(frame, radius=9, iter=5, safety_angle=45, debug=False, show_images=False, minVal_max_limit=30,
+                 Sure_Image=False):
+    arr = []
+    image = frame.copy()
+    minVal_fail_counter = 0
+    for i in range(iter):  # iterations is important -- don't touch
+        playground_image = image.copy()
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (radius, radius), 0)
+        (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(gray)
+        # print("minVal =", minVal)
+        if minVal > minVal_max_limit:
+            minVal_fail_counter += 1
+            continue
+        image = playground_image.copy()
+        cv2.circle(image, minLoc, radius, (255, 0, 0), 2)
+        cv2.circle(image, minLoc, radius, (255, 255, 255), cv2.FILLED)
+        arr.append(minLoc)
+        if debug:
+            print(minLoc)
+    if show_images:
         cv2.imshow("cen", image)
         cv2.waitKey(0)
-    average_list = []
-    min_point = minumum_color_array[0]
-    for (x1,y1) in minumum_color_array:
-        for (x2,y2) in minumum_color_array:
-            if (x1,y1) == (x2,y2) or x1 > x2 or y1 < y2:
+
+    # limit using minval
+    if minVal_fail_counter >= iter - 1:
+        if Sure_Image:
+            print(" ** NOTE ** minVal failure, trying to solve issue")
+            return adjust_angle(frame, radius, iter, debug=True, safety_angle=safety_angle, Sure_Image=Sure_Image,
+                                minVal_max_limit=minVal_max_limit + 7)
+        return frame
+
+    avgarr = []
+    min_point = arr[0]
+
+    for i in arr:
+        for j in arr:
+            x1 = i[0]
+            x2 = j[0]
+            y1 = i[1]
+            y2 = j[1]
+            if i == j or x1 > x2 or y1 < y2:
                 continue
-            angle = -GetAngleOfLineBetweenTwoPoints((x1,y1), (x2,y2))
+
+            ang = -GetAngleOfLineBetweenTwoPoints(i, j)
             if debug:
                 print("points", x1, x2, y1, y2)
                 print("check", x2 - x1, y1 - y2)
-                print(angle)
+                print(ang)
             if min_point[0] < x1:
-                min_point = (x1,y1)
-            average_list.append(angle)
-    good_angles = (x > 45 for x in average_list)
-    average_angle = sum(good_angles) / good_angles.count()
+                min_point = i
+
+            avgarr.append(ang)
+
+    average_angle = 0
+    average_angle_counter = 0
+
+    if avgarr.__len__() == 0:
+        if Sure_Image:  # limit when no spots
+            print(" ** NOTE ** no spots failure, trying to solve issue")
+            return adjust_angle(frame, radius, iter + 1, debug=True, safety_angle=safety_angle,
+                                Sure_Image=Sure_Image,
+                                minVal_max_limit=minVal_max_limit)
+        return frame
+
+    for i in avgarr:
+        if i > safety_angle:
+            continue
+        average_angle += i
+        average_angle_counter += 1
+
+    if average_angle_counter < 2:
+        if Sure_Image:  # limit using safety_angle
+            print(" ** NOTE ** safety angle exceeded, trying to solve issue")
+            return adjust_angle(frame, radius, iter, debug=True, safety_angle=safety_angle + 10,
+                                Sure_Image=Sure_Image,
+                                minVal_max_limit=minVal_max_limit)
+        return frame
+
+    average_angle /= average_angle_counter
+    if debug:
+        print("average_angle =", average_angle)
+
     final = rotate(frame, -average_angle, min_point)
-    if debug:
-        print("avgang =", average_angle)
+
+    if show_images:
         cv2.imshow("final", final)
         cv2.waitKey(0)
+
     return final
 
 
-def adjust_image(img , debug = False):
-    final = adjust_angle(simplest_cb(img, 1), debug=debug)
-    if debug:
+def adjust_image(img, debug=False, safety_angle=40, show_images=False, show_final=False, Sure_Image=False,
+                 minVal_max_limit=30):
+    final = adjust_angle(simplest_cb(img, 1), debug=debug, safety_angle=safety_angle, show_images=show_images,
+                         Sure_Image=Sure_Image, minVal_max_limit=minVal_max_limit)
+    if show_final:
         cv2.imshow("final", final)
         cv2.waitKey(0)
     return final
-    
-
 
 # End of module
