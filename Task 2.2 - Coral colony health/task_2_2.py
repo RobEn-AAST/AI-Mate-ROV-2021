@@ -13,7 +13,7 @@ Height, Width = frame.shape[:2]
 # Read old image and resize it to the size of the camera dimensions
 old_image = cv.imread("old.png")
 old_image = simplest_cb(cv.resize(old_image, (Width, Height)), 1)
-old_image = extract(adjust_angle(frame=old_image))
+old_image_ext = extract(adjust_angle(frame=old_image))
 # Define Script constants
 SAMPLING_RATE = 250
 DEBUG = False  # Select debug mode
@@ -35,7 +35,7 @@ while True:
         ratio = adjust_distance(old_image=old_image, frame=frame)
         if 1 + SIZE_TOLERENCE > ratio > 1 - SIZE_TOLERENCE:
             if SAMPLE_COUNTER > SAMPLING_RATE:
-                contours = detect(frame, old_image, debug=DEBUG)  # Detect changes
+                contours = detect(frame, old_image_ext, debug=DEBUG)  # Detect changes
                 SAMPLE_COUNTER = 0  # Reset the sampling counter
                 # filter contours to get only large ones which eliminates contours caused by noise
                 frame = print_contours(frame, contours["growth_cnts"], COLORS["GREEN"], "growth", area=AREA)
