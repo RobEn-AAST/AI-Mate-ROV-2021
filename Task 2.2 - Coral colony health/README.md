@@ -9,7 +9,7 @@ Using image recognition to determine the health of a coral colony by comparing i
 - python version 3.6.8 is highly recommended. 
 - Download PVC inside Detector/Weights, find link there
 ### NEED TO RECOMPILE DARKNET AT FIRST USE, #> cd Detector & make
-### -Need to compile opencv * might be optional *- OPTIONAL
+### ~~Need to compile opencv * might be optional~~- OPTIONAL
 
 ## Installation
 
