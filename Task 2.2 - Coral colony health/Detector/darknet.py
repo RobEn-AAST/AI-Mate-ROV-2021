@@ -188,6 +188,10 @@ def detect_image(img):
     for i in r:
         x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
         xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
+        if ymin <0:
+            ymin = 0
+        if xmin < 0:
+            xmin = 0
         pt1 = (xmin, ymin)
         pt2 = (xmax, ymax)
     
