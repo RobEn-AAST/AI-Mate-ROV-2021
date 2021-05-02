@@ -16,11 +16,12 @@ from cv2 import cv2
 import numpy as np
 
 # Defining module Constants
-LOWER_PURPLE = np.array([130, 50, 90])  # Purple HSV lower boundry
+LOWER_PURPLE = np.array([130, 80, 100])  # Purple HSV lower boundry
 UPPER_PURPLE = np.array([170, 255, 255])  # Purple HSV upper boundry
-LOWER_WHITE = np.array([0, 6, 180])  # White HSV lower boundry
+LOWER_WHITE = np.array([150, 150, 180])  # White HSV lower boundry
 UPPER_WHITE = np.array([255, 255, 255])  # White HSV upper boundry
 KERNEL_ALLIGN = np.ones((5, 5), np.uint8)  # Kernel used for opening effect
+KERNEL_ERODE = np.ones((3,3),np.uint8)
 MAX_FEATURES = 100  # Maximum number of features to be detected
 GOOD_MATCH_PERCENT = 0.15  # Matching tolerence
 AREA = 250  # Minimum contour area
@@ -32,46 +33,6 @@ COLORS = {
 }
 AREA_TOLERANCE = 1000  # Difference in area tolerence
 MIN_MATCH_COUNT = 10  # Matching Tolerence
-
-# Objects used for feature matching
-flann = cv2.FlannBasedMatcher(dict(algorithm=1, trees=5), dict(checks=50))
-bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
-sift = cv2.SIFT_create()
-
-
-def check_for_matches(old_image, new_image, debug=False):
-    """ 
-checks if 2 images match and returns if they match and the number of good matches
-    
-arguments :-
-------------
-
-1 - old_image -> an numpy array representing the old image ( can be read using open cv ).
-2 - new_image -> an numpy array representing the new image ( can be read using open cv ).
-3 - debug -> boolean that controls if debug mode is on or off.
-
-outputs :-
-----------
-
-1 - whether there are matches or not
-2 - the number of good matches
-
-    """
-    # detect matches and sort them
-    matches = bf.match(
-        cv2.cvtColor(old_image, cv2.COLOR_BGR2GRAY),
-        cv2.cvtColor(new_image, cv2.COLOR_BGR2GRAY)
-    )
-    matches.sort(key=lambda x: x.distance, reverse=False)
-    # Remove not so good matches
-    numgoodmatches = int(len(matches) * GOOD_MATCH_PERCENT)
-    matches = matches[:numgoodmatches]
-    num_of_matches = len(matches)
-    # Print debug info if debug mode is on
-    if debug:
-        print("matching percentage = " + str((numgoodmatches / MAX_FEATURES) * 100))
-    return (num_of_matches >= MAX_FEATURES, numgoodmatches)
-
 
 def extract(image, debug=False):
     """ 
@@ -99,7 +60,8 @@ outputs :-
     purple = cv2.bitwise_and(image, image, mask=purple_mask)
     white[white_mask > 0] = (255, 255, 255)
     purple[purple_mask > 0] = (255, 255, 255)
-    white = cv2.morphologyEx(white, cv2.MORPH_OPEN, KERNEL_ALLIGN)
+    purple = cv2.erode(purple,KERNEL_ERODE,iterations = 1)
+    white = cv2.erode(white,KERNEL_ERODE,iterations = 1)
     # Print debug info if debug mode is on
     if debug:
         cv2.imshow("extraction result", np.hstack([image, purple, white]))
@@ -136,7 +98,7 @@ arguments :-
     return {'original': image, 'white': white, 'purple': purple}
 
 
-def detect(new_image, old_image, debug=False):
+def detect(new_image, debug=False):
     """ 
 detects the changes in the new image returning contours at their places
     
@@ -160,17 +122,17 @@ outputs :-
 
     newimage = extract(adjust_angle(frame=new_image, Sure_Image=True))
     # find the diff purple part between the 2 images using bitwise xor
-    diff_purple = cv2.bitwise_xor(old_image["purple"], newimage["purple"])
-    diff_purple = cv2.subtract(diff_purple, old_image["white"])
+    diff_purple = cv2.bitwise_xor(old_image_ext["purple"], newimage["purple"])
+    diff_purple = cv2.subtract(diff_purple, old_image_ext["white"])
     diff_purple = cv2.subtract(diff_purple, new_image["white"])
     # growth = new image && common part
     growth = cv2.bitwise_and(newimage["purple"], diff_purple)
     # death = old image && common
-    death = cv2.bitwise_and(oldimage["purple"], diff_purple)
+    death = cv2.bitwise_and(old_image_ext["purple"], diff_purple)
     # bloching = white new image && purple old image
-    blotching = cv2.bitwise_and(new_image["white"], oldimage["purple"])
+    blotching = cv2.bitwise_and(new_image["white"], old_image_ext["purple"])
     # recovery = purple new image && white old image
-    recovery = cv2.bitwise_and(newimage["purple"], oldimage["white"])
+    recovery = cv2.bitwise_and(newimage["purple"], old_image_ext["white"])
     # apply opening morphology on results  to reduce noise
     growth = cv2.morphologyEx(to_black_and_white(growth), cv2.MORPH_OPEN, KERNEL_ALLIGN)
     death = cv2.morphologyEx(to_black_and_white(death), cv2.MORPH_OPEN, KERNEL_ALLIGN)
@@ -266,7 +228,7 @@ outputs :-
     return float(cv2.contourArea(_c))
 
 
-def adjust_distance(old_image, frame):
+def adjust_distance(frame):
     """ 
 compares 2 objects in 2 images and returns the difference in size between the 2 objects in them
     
@@ -283,7 +245,7 @@ outputs :-
     
     """
     frame_d = get_colony_area(frame)
-    old_image_d = get_colony_area(old_image)
+    old_image_d = get_colony_area(oldimage)
     return frame_d / old_image_d
 
 
@@ -424,4 +386,13 @@ def adjust_image(img, debug=False, safety_angle=40, show_images=False, show_fina
         cv2.waitKey(0)
     return final
 
+
+# Read old image and resize it to the size of the camera dimensions
+cap = cv2.VideoCapture(0)
+frame = cap.read()[1]
+Height, Width = frame.shape[:2]
+oldimage = cv2.imread("old.png")
+oldimage = simplest_cb(cv2.resize(oldimage, (Width, Height)), 1)
+old_image_ext = extract(adjust_angle(frame=oldimage))
+cap.release()
 # End of module
