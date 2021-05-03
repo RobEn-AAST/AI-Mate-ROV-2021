@@ -2,3 +2,4 @@ certifi==2020.12.5
 numpy==1.19.5
 opencv-contrib-python==3.3.0.9
 wincertstore==0.2
+sklearn
