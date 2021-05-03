@@ -14,6 +14,7 @@ Prequisites :-
 from math import atan2, degrees
 from cv2 import cv2
 import numpy as np
+from sklearn.cluster import KMeans
 
 # Defining module Constants
 LOWER_PURPLE = np.array([130, 80, 100])  # Purple HSV lower boundry
@@ -385,6 +386,69 @@ def adjust_image(img, debug=False, safety_angle=40, show_images=False, show_fina
         cv2.imshow("final", final)
         cv2.waitKey(0)
     return final
+
+
+
+def pixelate_internal(img, w, h):
+    w = int(w)
+    h = int(h)
+    height, width = img.shape[:2]
+    temp = cv2.resize(img, (w, h), interpolation=cv2.INTER_LINEAR)
+    return cv2.resize(temp, (width, height), interpolation=cv2.INTER_NEAREST)
+
+
+def colorClustering(idx, img, k):
+    clusterValues = []
+    for _ in range(0, k):
+        clusterValues.append([])
+    
+    for r in range(0, idx.shape[0]):
+        for c in range(0, idx.shape[1]):
+            clusterValues[idx[r][c]].append(img[r][c])
+
+    imgC = np.copy(img)
+
+    clusterAverages = []
+    for i in range(0, k):
+        clusterAverages.append(np.average(clusterValues[i], axis=0))
+    
+    for r in range(0, idx.shape[0]):
+        for c in range(0, idx.shape[1]):
+            imgC[r][c] = clusterAverages[idx[r][c]]
+            
+    return imgC
+
+def segmentImgClrRGB(img, k):
+    imgC = np.copy(img)
+    h = img.shape[0]
+    w = img.shape[1]
+    imgC.shape = (img.shape[0] * img.shape[1], 3)
+    kmeans = KMeans(n_clusters=k, random_state=0).fit(imgC).labels_
+    kmeans.shape = (h, w)
+    return kmeans
+
+
+def kMeansImage(image, k):
+    idx = segmentImgClrRGB(image, k)
+    return colorClustering(idx, image, k)
+
+
+def PixelArt(image, radius=90):
+    img32 = pixelate_internal(image, radius, radius)
+    return img32
+
+
+def PixelArt_with_Kmeans(image, radius=90, K_factor=3):
+    img32 = pixelate_internal(image, radius, radius)
+    KMI = kMeansImage(img32, K_factor)
+    return KMI
+
+
+def Pixelated_Clean_Image_beta(image, w, h, kernel=np.ones((11,11),np.uint8), noiseKernel=np.ones((4,4),np.uint8)):
+    img33 = cv2.morphologyEx(image, cv2.MORPH_OPEN, noiseKernel)
+    img33 = cv2.dilate(img33,kernel,iterations = 1)
+    img34 = cv2.morphologyEx(img33, cv2.MORPH_OPEN, kernel)
+    return img34
 
 
 # Read old image and resize it to the size of the camera dimensions
