@@ -8,6 +8,8 @@ Using image recognition to determine the health of a coral colony by comparing i
 - numpy.
 - python version 3.6.8 is highly recommended. 
 - Download PVC inside Detector/Weights, find link there
+- Cuda, tested with cuda 11.2.152 on ubuntu
+
 ### NEED TO RECOMPILE DARKNET AT FIRST USE, #> cd Detector & make
 ### ~~Need to compile opencv * might be optional~~- OPTIONAL
 
