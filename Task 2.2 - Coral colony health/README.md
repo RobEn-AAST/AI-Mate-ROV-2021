@@ -12,6 +12,8 @@ Using image recognition to determine the health of a coral colony by comparing i
 
 ### NEED TO RECOMPILE DARKNET AT FIRST USE, #> cd Detector & make
 ### ~~Need to compile opencv * might be optional~~- OPTIONAL
+however, Follow this tutorial to build opencv on ubuntu distros : https://linuxize.com/post/how-to-install-opencv-on-ubuntu-20-04/
+and of course set OPENCV=1 in MakeFile dear.
 
 ## Installation
 
