@@ -1,9 +1,6 @@
 import cv2
 import numpy as np
 from math import atan2, degrees
-import imutils
-import matplotlib.pyplot as plt
-
 
 LOWER_PURPLE = np.array([130, 50, 90])
 UPPER_PURPLE = np.array([170, 255, 255])

@@ -11,15 +11,16 @@ Prequisites :-
 3 - math -> if not already included while installing python
 
 """
-from math import atan2, degrees
 from cv2 import cv2
 import numpy as np
-from sklearn.cluster import KMeans
+
+
+oldimage = cv2.imread("old.png")
 
 # Defining module Constants
-LOWER_PURPLE = np.array([130, 80, 100])  # Purple HSV lower boundry
+LOWER_PURPLE = np.array([100, 50, 140])  # Purple HSV lower boundry
 UPPER_PURPLE = np.array([170, 255, 255])  # Purple HSV upper boundry
-LOWER_WHITE = np.array([150, 150, 180])  # White HSV lower boundry
+LOWER_WHITE = np.array([150, 150, 160])  # White HSV lower boundry
 UPPER_WHITE = np.array([255, 255, 255])  # White HSV upper boundry
 KERNEL_ALLIGN = np.ones((5, 5), np.uint8)  # Kernel used for opening effect
 KERNEL_ERODE = np.ones((3,3),np.uint8)
@@ -66,10 +67,13 @@ outputs :-
     # Print debug info if debug mode is on
     if debug:
         cv2.imshow("extraction result", np.hstack([image, purple, white]))
+        cv2.waitKey(0)
     return {'original': image, 'white': white, 'purple': purple}
 
+old_image_ext = extract(oldimage)
 
-def to_black_and_white(image_dict, debug=False):
+
+def to_black_and_white(image, debug=False):
     """ 
 Python function that changes image to black and white 
     
@@ -88,15 +92,11 @@ arguments :-
     - purple parts of image in black and white.
     
     """
-    image = cv2.cvtColor(image_dict['original'], cv2.COLOR_BGR2GRAY)
-    purple = cv2.cvtColor(image_dict['white'], cv2.COLOR_BGR2GRAY)
-    white = cv2.cvtColor(image_dict['purple'], cv2.COLOR_BGR2GRAY)
-    purple = cv2.threshold(purple, 127, 255, cv2.THRESH_BINARY)[1]
-    white = cv2.threshold(white, 127, 255, cv2.THRESH_BINARY)[1]
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # Print debug info if debug mode is on
     if debug:
-        cv2.imshow("extraction result", np.hstack([image, purple, white]))
-    return {'original': image, 'white': white, 'purple': purple}
+        cv2.imshow("extraction result", image)
+    return image
 
 
 def detect(new_image, debug=False):
@@ -121,17 +121,17 @@ outputs :-
     
     """
 
-    newimage = extract(adjust_angle(frame=new_image, Sure_Image=True))
+    newimage = extract(new_image, debug= debug)
     # find the diff purple part between the 2 images using bitwise xor
     diff_purple = cv2.bitwise_xor(old_image_ext["purple"], newimage["purple"])
     diff_purple = cv2.subtract(diff_purple, old_image_ext["white"])
-    diff_purple = cv2.subtract(diff_purple, new_image["white"])
+    diff_purple = cv2.subtract(diff_purple, newimage["white"])
     # growth = new image && common part
     growth = cv2.bitwise_and(newimage["purple"], diff_purple)
     # death = old image && common
     death = cv2.bitwise_and(old_image_ext["purple"], diff_purple)
     # bloching = white new image && purple old image
-    blotching = cv2.bitwise_and(new_image["white"], old_image_ext["purple"])
+    blotching = cv2.bitwise_and(newimage["white"], old_image_ext["purple"])
     # recovery = purple new image && white old image
     recovery = cv2.bitwise_and(newimage["purple"], old_image_ext["white"])
     # apply opening morphology on results  to reduce noise
@@ -140,10 +140,10 @@ outputs :-
     blotching = cv2.morphologyEx(to_black_and_white(blotching), cv2.MORPH_OPEN, KERNEL_ALLIGN)
     recovery = cv2.morphologyEx(to_black_and_white(recovery), cv2.MORPH_OPEN, KERNEL_ALLIGN)
     # find the contours
-    growth_cnts = cv2.findContours(growth, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
-    death_cnts = cv2.findContours(death, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
-    blotching_cnts = cv2.findContours(blotching, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
-    recovery_cnts = cv2.findContours(recovery, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[1]
+    growth_cnts = cv2.findContours(growth, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[0]
+    death_cnts = cv2.findContours(death, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[0]
+    blotching_cnts = cv2.findContours(blotching, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[0]
+    recovery_cnts = cv2.findContours(recovery, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[0]
     # draw the contours on the preview image if debug mode is on
     if debug:
         cv2.imshow("common purple", diff_purple)
@@ -151,6 +151,7 @@ outputs :-
         cv2.imshow("death", death)
         cv2.imshow("blotching", blotching)
         cv2.imshow("recovery", recovery)
+        cv2.waitKey(0)
     return {
         'growth_cnts': growth_cnts,
         'death_cnts': death_cnts,
@@ -160,6 +161,8 @@ outputs :-
 
 
 def print_contours(image, contours, color, text, area=150):
+    if contours == None:
+        return image.copy()
     out = image.copy()
     """ 
 Python function that draw the contours according to a tolerence area
@@ -248,215 +251,4 @@ outputs :-
     frame_d = get_colony_area(frame)
     old_image_d = get_colony_area(oldimage)
     return frame_d / old_image_d
-
-
-def simplest_cb(img, percent=1):
-    out_channels = []
-    cumstops = (
-        img.shape[0] * img.shape[1] * percent / 200.0,
-        img.shape[0] * img.shape[1] * (1 - percent / 200.0)
-    )
-    for channel in cv2.split(img):
-        cumhist = np.cumsum(cv2.calcHist([channel], [0], None, [256], (0, 256)))
-        low_cut, high_cut = np.searchsorted(cumhist, cumstops)
-        lut = np.concatenate((
-            np.zeros(low_cut),
-            np.around(np.linspace(0, 255, high_cut - low_cut + 1)),
-            255 * np.ones(255 - high_cut)
-        ))
-        out_channels.append(cv2.LUT(channel, lut.astype('uint8')))
-    return cv2.merge(out_channels)
-
-def rotate(image, angle, center=None, scale=1.0):
-    (h, w) = image.shape[:2]
-
-    if center is None:
-        center = (w / 2, h / 2)
-
-    # Perform the rotation
-    M = cv2.getRotationMatrix2D(center, angle, scale)
-    rotated = cv2.warpAffine(image, M, (w, h))
-
-    return rotated
-
-
-def GetAngleOfLineBetweenTwoPoints(p1, p2):
-    xDiff = p2[0] - p1[0]
-    yDiff = p2[1] - p1[1]
-    return degrees(atan2(yDiff, xDiff))
-
-
-def adjust_angle(frame, radius=9, iter=5, safety_angle=45, debug=False, show_images=False, minVal_max_limit=30,
-                 Sure_Image=False):
-    arr = []
-    image = frame.copy()
-    minVal_fail_counter = 0
-    for i in range(iter):  # iterations is important -- don't touch
-        playground_image = image.copy()
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (radius, radius), 0)
-        (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(gray)
-        # print("minVal =", minVal)
-        if minVal > minVal_max_limit:
-            minVal_fail_counter += 1
-            continue
-        image = playground_image.copy()
-        cv2.circle(image, minLoc, radius, (255, 0, 0), 2)
-        cv2.circle(image, minLoc, radius, (255, 255, 255), cv2.FILLED)
-        arr.append(minLoc)
-        if debug:
-            print(minLoc)
-    if show_images:
-        cv2.imshow("cen", image)
-        cv2.waitKey(0)
-
-    # limit using minval
-    if minVal_fail_counter >= iter - 1:
-        if Sure_Image:
-            print(" ** NOTE ** minVal failure, trying to solve issue")
-            return adjust_angle(frame, radius, iter, debug=True, safety_angle=safety_angle, Sure_Image=Sure_Image,
-                                minVal_max_limit=minVal_max_limit + 7)
-        return frame
-
-    avgarr = []
-    min_point = arr[0]
-
-    for i in arr:
-        for j in arr:
-            x1 = i[0]
-            x2 = j[0]
-            y1 = i[1]
-            y2 = j[1]
-            if i == j or x1 > x2 or y1 < y2:
-                continue
-
-            ang = -GetAngleOfLineBetweenTwoPoints(i, j)
-            if debug:
-                print("points", x1, x2, y1, y2)
-                print("check", x2 - x1, y1 - y2)
-                print(ang)
-            if min_point[0] < x1:
-                min_point = i
-
-            avgarr.append(ang)
-
-    average_angle = 0
-    average_angle_counter = 0
-
-    if avgarr.__len__() == 0:
-        if Sure_Image:  # limit when no spots
-            print(" ** NOTE ** no spots failure, trying to solve issue")
-            return adjust_angle(frame, radius, iter + 1, debug=True, safety_angle=safety_angle,
-                                Sure_Image=Sure_Image,
-                                minVal_max_limit=minVal_max_limit)
-        return frame
-
-    for i in avgarr:
-        if i > safety_angle:
-            continue
-        average_angle += i
-        average_angle_counter += 1
-
-    if average_angle_counter < 2:
-        if Sure_Image:  # limit using safety_angle
-            print(" ** NOTE ** safety angle exceeded, trying to solve issue")
-            return adjust_angle(frame, radius, iter, debug=True, safety_angle=safety_angle + 10,
-                                Sure_Image=Sure_Image,
-                                minVal_max_limit=minVal_max_limit)
-        return frame
-
-    average_angle /= average_angle_counter
-    if debug:
-        print("average_angle =", average_angle)
-
-    final = rotate(frame, -average_angle, min_point)
-
-    if show_images:
-        cv2.imshow("final", final)
-        cv2.waitKey(0)
-
-    return final
-
-
-def adjust_image(img, debug=False, safety_angle=40, show_images=False, show_final=False, Sure_Image=False,
-                 minVal_max_limit=30):
-    final = adjust_angle(simplest_cb(img, 1), debug=debug, safety_angle=safety_angle, show_images=show_images,
-                         Sure_Image=Sure_Image, minVal_max_limit=minVal_max_limit)
-    if show_final:
-        cv2.imshow("final", final)
-        cv2.waitKey(0)
-    return final
-
-
-
-def pixelate_internal(img, w, h):
-    w = int(w)
-    h = int(h)
-    height, width = img.shape[:2]
-    temp = cv2.resize(img, (w, h), interpolation=cv2.INTER_LINEAR)
-    return cv2.resize(temp, (width, height), interpolation=cv2.INTER_NEAREST)
-
-
-def colorClustering(idx, img, k):
-    clusterValues = []
-    for _ in range(0, k):
-        clusterValues.append([])
-    
-    for r in range(0, idx.shape[0]):
-        for c in range(0, idx.shape[1]):
-            clusterValues[idx[r][c]].append(img[r][c])
-
-    imgC = np.copy(img)
-
-    clusterAverages = []
-    for i in range(0, k):
-        clusterAverages.append(np.average(clusterValues[i], axis=0))
-    
-    for r in range(0, idx.shape[0]):
-        for c in range(0, idx.shape[1]):
-            imgC[r][c] = clusterAverages[idx[r][c]]
-            
-    return imgC
-
-def segmentImgClrRGB(img, k):
-    imgC = np.copy(img)
-    h = img.shape[0]
-    w = img.shape[1]
-    imgC.shape = (img.shape[0] * img.shape[1], 3)
-    kmeans = KMeans(n_clusters=k, random_state=0).fit(imgC).labels_
-    kmeans.shape = (h, w)
-    return kmeans
-
-
-def kMeansImage(image, k):
-    idx = segmentImgClrRGB(image, k)
-    return colorClustering(idx, image, k)
-
-
-def PixelArt(image, radius=90):
-    img32 = pixelate_internal(image, radius, radius)
-    return img32
-
-
-def PixelArt_with_Kmeans(image, radius=90, K_factor=3):
-    img32 = pixelate_internal(image, radius, radius)
-    KMI = kMeansImage(img32, K_factor)
-    return KMI
-
-
-def Pixelated_Clean_Image_beta(image, w, h, kernel=np.ones((11,11),np.uint8), noiseKernel=np.ones((4,4),np.uint8)):
-    img33 = cv2.morphologyEx(image, cv2.MORPH_OPEN, noiseKernel)
-    img33 = cv2.dilate(img33,kernel,iterations = 1)
-    img34 = cv2.morphologyEx(img33, cv2.MORPH_OPEN, kernel)
-    return img34
-
-
-# Read old image and resize it to the size of the camera dimensions
-cap = cv2.VideoCapture(0)
-frame = cap.read()[1]
-Height, Width = frame.shape[:2]
-oldimage = cv2.imread("old.png")
-oldimage = simplest_cb(cv2.resize(oldimage, (Width, Height)), 1)
-old_image_ext = extract(adjust_angle(frame=oldimage))
-cap.release()
 # End of module
