@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import *
 from stitching import stitchingFunction
-from flying_the_transect_line import flyTransLineFunction
+from flying_the_transect_line import read_video
 
 window = tk.Tk()
 window.geometry('500x500')
@@ -10,7 +10,7 @@ window.title("run rov")
    # the button for transect line mission 
 
 
-button1 = tk.Button(window, text = "flying transect line" , fg = "red", width = 10, height = 5, command = flyTransLineFunction)
+button1 = tk.Button(window, text = "flying transect line" , fg = "red", width = 10, height = 5, command = read_video)
 button1.place(x=185, y= 100)
 
    # the button for color detection mission
