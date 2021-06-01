@@ -160,7 +160,7 @@ def read_video():
     this function is responsible for reading the video/camera frame by frame
     and call multiple functions. May consider it as the main function
     """
-    vid = cv.VideoCapture(CAPTURE_FROM)
+    vid = cv.VideoCapture(0)
     while True:
         readable, frame = vid.read()
         if not readable:
@@ -184,7 +184,8 @@ def read_video():
         if cv.waitKey(30) & 0xFF == ord('q'):
             break
     vid.release()
+    cv.destroyAllWindows()
 
 
-read_video()  # this function is responsible for reading video/camera frames and call every other function
-cv.destroyAllWindows()
+#read_video()  # this function is responsible for reading video/camera frames and call every other function
+#cv.destroyAllWindows()
