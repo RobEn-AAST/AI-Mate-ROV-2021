@@ -14,12 +14,7 @@ def connection():
 
     client.connect(piIp, piUser, piPass)
 
-    ssh_stdin , ssh_stdout , ssh_stderr = client.exec_command('bash ROV-Gstreamer/gst0.sh')  # place your gstreamer command here
+    ssh_stdin , ssh_stdout , ssh_stderr = client.exec_command('bash ROV-Gstreamer/gst0.sh & bash ROV-Gstreamer/gst1.sh ')  # place your gstreamer command here
 
-    for line in ssh_stdout:
-        out.append(line.strip('\n'))
-
-    for i in out:
-        print(i.strip())
 
 connection()
