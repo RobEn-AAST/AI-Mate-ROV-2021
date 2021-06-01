@@ -155,12 +155,12 @@ def detect_pipes(frame, mask_blue):
     return highlight_pipes(frame, left_co, right_co)
 
 
-def read_video():
+def read_video(inputCam):
     """
     this function is responsible for reading the video/camera frame by frame
     and call multiple functions. May consider it as the main function
     """
-    vid = cv.VideoCapture(0)
+    vid = cv.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
     while True:
         readable, frame = vid.read()
         if not readable:
