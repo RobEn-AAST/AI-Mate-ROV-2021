@@ -72,7 +72,6 @@ outputs :-
         cv2.waitKey(0)
     return {'original': image, 'white': white, 'purple': purple}
 
-old_image_ext = extract(oldimage)
 
 
 def to_black_and_white(image, debug=False):
