@@ -6,11 +6,7 @@ from object_detection_module import check_for_matches, detect, print_contours, a
 
 old_image = cv.imread("old.png")
 # Initalize camera
-cap = cv.VideoCapture(0)
 
-# Get default camera window size
-frame = cap.read()[1]
-Height, Width = frame.shape[:2]
 # old_image_boxed = detect_image(old_image)
 # Define Script constants
 SAMPLING_RATE = 250
@@ -25,10 +21,16 @@ contours = {'growth_cnts': [], 'death_cnts': [], 'blotching_cnts': [], 'recovery
 
 # Read old image and resize it to the size of the camera dimensions
 
-old_image = cv.resize(old_image, (Width, Height))
 
 
 def colonyhealthfunction():
+    global old_image
+    cap = cv.VideoCapture(0)
+
+# Get default camera window size
+    frame = cap.read()[1]
+    Height, Width = frame.shape[:2]
+    old_image = cv.resize(old_image, (Width, Height))
     global FRAME_COUNT
     global SAMPLE_COUNTER
     while True:
@@ -61,7 +63,7 @@ def colonyhealthfunction():
         frame = addassistant(frame,old_image)
         cv.imshow("Object Tracker", frame)
         # close the stream when enter key is pressed
-        if cv.waitKey(1) == '13':  # 13 is the Enter Key
+        if cv.waitKey(30) & 0xFF == ord('q'):
             break
 
 
@@ -69,4 +71,4 @@ def colonyhealthfunction():
     cap.release()
     cv.destroyAllWindows()
 
-colonyhealthfunction()
+#colonyhealthfunction()

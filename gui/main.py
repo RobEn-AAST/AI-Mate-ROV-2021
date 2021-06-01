@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import *
 from stitching import stitchingFunction
 from flying_the_transect_line import read_video
-
+from task_2_2 import colonyhealthfunction
 window = tk.Tk()
 window.geometry('500x500')
 window.title("run rov")
@@ -15,7 +15,7 @@ button1.place(x=185, y= 100)
 
    # the button for color detection mission
 
-button2 = tk.Button(window, text = "coral color" , fg = "green", width = 10, height = 5)
+button2 = tk.Button(window, text = "coral color" , fg = "green", width = 10, height = 5, command= colonyhealthfunction)
 button2.place(x=185, y= 200)
 
 
