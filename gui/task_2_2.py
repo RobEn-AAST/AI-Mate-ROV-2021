@@ -1,8 +1,8 @@
 """ Driver code for task 2.2"""
 import cv2 as cv
-from object_detection_module import COLORS, AREA, MIN_MATCH_COUNT, extract
+from object_detection_module import COLORS, AREA, MIN_MATCH_COUNT
 from object_detection_module import check_for_matches, detect, print_contours, addassistant
-
+import object_detection_module
 
 old_image = cv.imread("old.png")
 # Initalize camera
@@ -47,7 +47,7 @@ def colonyhealthfunction():
             SAMPLE_COUNTER += 1
             # ratio = adjust_distance(old_image=old_image, frame=frame)
             cv.waitKey(0)
-            contours = detect(frame, extract(old_image), debug=DEBUG)  # Detect changes
+            contours = detect(frame, object_detection_module.extract(old_image), debug=DEBUG)  # Detect changes
             SAMPLE_COUNTER = 0  # Reset the sampling counter
 
             frame = print_contours(frame, contours["growth_cnts"], COLORS["GREEN"], "growth", area=AREA)
@@ -58,7 +58,6 @@ def colonyhealthfunction():
         else:
             SAMPLE_COUNTER = 0  # Reset sample counter
             contours = {'growth_cnts': [], 'death_cnts': [], 'blotching_cnts': [], 'recovery_cnts': []}
-
         FRAME_COUNT += 1
         frame = addassistant(frame,old_image)
         cv.imshow("Object Tracker", frame)
