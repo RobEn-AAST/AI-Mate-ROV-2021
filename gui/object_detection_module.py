@@ -35,6 +35,8 @@ COLORS = {
 }
 AREA_TOLERANCE = 1000  # Difference in area tolerence
 MIN_MATCH_COUNT = 10  # Matching Tolerence
+bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
+
 
 def extract(image, debug=False):
     """ 
@@ -251,4 +253,36 @@ outputs :-
     frame_d = get_colony_area(frame)
     old_image_d = get_colony_area(oldimage)
     return frame_d / old_image_d
+
+def Pixelated_Clean_Image_beta(image, kernel=np.ones((5,5),np.uint8), noiseKernel=np.ones((2,2),np.uint8)):
+    opened = cv2.morphologyEx(image, cv2.MORPH_OPEN, noiseKernel)
+    dilated = cv2.dilate(opened,kernel,iterations = 1)
+    return dilated
+
+def addassistant(background,overlay):
+    overlay_tmp = overlay.copy()
+    overlay_tmp = remove_back_ground(Pixelated_Clean_Image_beta(overlay_tmp))
+    background_tmp = background.copy()
+    mask = cv2.inRange(overlay_tmp, np.array([255,255,255]), np.array([255,255,255]))
+    background_tmp[mask > 0] = (255, 255, 255)
+    return background_tmp
+
+
+def check_for_matches(old_image,new_image,debug = False):
+    """ checks if 2 images match and returns if they match and the number of good matches """
+    #detect matches and sort them
+    matches = bf.match(
+                        cv2.cvtColor(old_image,cv2.COLOR_BGR2GRAY),
+                        cv2.cvtColor(new_image,cv2.COLOR_BGR2GRAY)
+                        )
+    matches.sort(key=lambda x: x.distance, reverse=False)
+  # Remove not so good matches
+    numgoodmatches = int(len(matches) * GOOD_MATCH_PERCENT)
+    matches = matches[:numgoodmatches]
+    num_of_matches = len(matches)
+   # Print debug info if debug mode is on
+    if debug:
+        print("matching percentage = " + str( (numgoodmatches/MAX_FEATURES) * 100))
+    return (num_of_matches >= MAX_FEATURES,numgoodmatches)
+
 # End of module
