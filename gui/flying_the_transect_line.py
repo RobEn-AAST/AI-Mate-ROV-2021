@@ -2,7 +2,6 @@ import numpy as np
 import cv2 as cv
 import math
 
-def flyTransLineFunction():
     class PipeRange:
         def __init__(self, min_x, max_x, y_co=0.75):
             self.MinX = min_x
