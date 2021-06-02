@@ -139,7 +139,7 @@
 
 import cv2
 import numpy as np
-def mainStitching():
+def mainStitching(cam):
 	frameWidth = 640
 	frameHeight = 480
 	rect_width = 400
@@ -177,7 +177,7 @@ def mainStitching():
 
 	frameWidth = 640
 	frameHeight = 480
-	cap = cv2.VideoCapture(0)
+	cap = cv2.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
 	cap.set(3, frameWidth)
 	cap.set(4, frameHeight)
 	o = 0
@@ -283,4 +283,4 @@ def mainStitching():
 		# if cv2.waitKey(1) & 0xFF == ord('q') & 0xFF == ord('27'):
 		#     break
 
-mainStitching()
+

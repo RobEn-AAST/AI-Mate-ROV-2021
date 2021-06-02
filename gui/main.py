@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import *
-from stitching import stitchingFunction
+from stitching import mainStitching
 from flying_the_transect_line import read_video
 from task_2_2 import colonyhealthfunction
 from musselsTask import calcLitres
@@ -18,6 +18,7 @@ def showlitres():
    res.config(text = amount)
    print(amount)
    return amount
+
 
 window = tk.Tk()
 window.geometry('700x700')
@@ -37,7 +38,7 @@ button2.place(x=100, y= 250)
    # the button for stitching mission
 
 
-button3 = tk.Button(window, text = "STITCHING" , fg = "blue", width = 14, height = 5, command = stitchingFunction)
+button3 = tk.Button(window, text = "STITCHING" , fg = "blue", width = 14, height = 5, command = lambda : mainStitching(cam))
 button3.place(x=100, y= 350)
 
    # button for camera 0
