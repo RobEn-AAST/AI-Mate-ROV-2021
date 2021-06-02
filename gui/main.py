@@ -12,6 +12,12 @@ def changeString(cameraNum):
    global cam
    cam = cameraNum
 
+def showlitres():
+   amount = calcLitres(int(entry.get()))
+   
+   res.config(text = amount)
+   print(amount)
+   return amount
 
 window = tk.Tk()
 window.geometry('700x700')
@@ -52,17 +58,20 @@ entry = tk.Entry(window)
 entry.place(x= 350, y = 170)
 
    # button for calculate
-button6 = tk.Button(window, text = "calculate" , fg = "black", width = 4, height = 1, command = lambda : calcLitres(int(entry.get())))
+button6 = tk.Button(window, text = "calculate" , fg = "black", width = 4, height = 1, command = showlitres)
 button6.place(x=500, y= 170)
 
    # show output
-res = tk.Label(window, text = f"Result : {calcLitres(7)}", fg = "red")
-res.place(x= 350, y= 195)
+strLabel = tk.Label(window, text = "Total Amount : " , fg = "red")
+strLabel.place(x= 350, y= 198)
+res = tk.Label(window, text = 0, fg = "red")
+res.place(x= 470, y= 198)
 
    # button for saving video
 
 button7 = tk.Button(window, text = "record" , fg = "red", width = 5, height = 2, command = lambda : recordVideo(cam))
 button7.place(x=350, y= 95)
+
 
 
 
