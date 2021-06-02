@@ -11,7 +11,7 @@ Prequisites :-
 3 - math -> if not already included while installing python
 
 """
-from cv2 import cv2
+import cv2
 import numpy as np
 
 
