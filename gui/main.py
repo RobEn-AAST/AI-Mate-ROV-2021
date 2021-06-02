@@ -19,19 +19,19 @@ window.title("run rov")
 
    # the button for transect line mission 
 
-button1 = tk.Button(window, text = "flying transect line" , fg = "red", width = 13, height = 5, command = lambda : read_video(cam))
+button1 = tk.Button(window, text = "FLYING TRANSECT LINE" , fg = "blue", width = 14, height = 5, command = lambda : read_video(cam))
 button1.place(x=100, y= 150)
 
    # the button for color detection mission
 
-button2 = tk.Button(window, text = "coral color" , fg = "green", width = 13, height = 5, command = lambda : colonyhealthfunction(cam))
+button2 = tk.Button(window, text = "CORAL COLOR" , fg = "blue", width = 14, height = 5, command = lambda : colonyhealthfunction(cam))
 button2.place(x=100, y= 250)
 
 
    # the button for stitching mission
 
 
-button3 = tk.Button(window, text = "stitching" , fg = "blue", width = 13, height = 5, command = stitchingFunction)
+button3 = tk.Button(window, text = "STITCHING" , fg = "blue", width = 14, height = 5, command = stitchingFunction)
 button3.place(x=100, y= 350)
 
    # button for camera 0
