@@ -25,7 +25,7 @@ window.title("run rov")
 
    # the button for transect line mission 
 
-button1 = tk.Button(window, text = "FLYING TRANSECT LINE" , fg = "blue", width = 14, height = 5, command = lambda : read_video(cam))
+button1 = tk.Button(window, text = "FLYING  \n TRANSECT \nLINE" , fg = "blue", width = 14, height = 5, command = lambda : read_video(cam))
 button1.place(x=100, y= 150)
 
    # the button for color detection mission
