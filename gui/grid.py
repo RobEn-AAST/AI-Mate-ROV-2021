@@ -2,32 +2,36 @@ import tkinter as tk
 from tkinter import *
 from tkinter import Label
 import numpy as np
+from tkinter import font as tkFont 
+
 
 window = tk.Tk()
-window.geometry('1100x400')
+window.geometry('1500x600')
 window.title("grid mission")
+    # clear button
+clear = Button(window , text = "clear", fg = 'red', command = lambda: start_drawing())
+clear.grid(row = 5, column = 1, ipadx = 10, ipady = 10)
+    
 
-
-color = 0
+helv36 = tkFont.Font(family='Helvetica', size=36, weight=tkFont.BOLD)
 def changeColor(reef):
-
+    global color
     if reef == "yellow":
-        color = 1
-        return
+        color = 1 
     if reef == "blue":
         color = 2
-        return
+        
     if reef == "green":
         color = 3
-        return
+        
     if reef == "red":
         color = 4
-        return
+    return color
 
 
-def showChar(buttons1,row, column):
-    
-    if color == 1 :
+def showChar(buttons,row, column):  
+    global color
+    if color == 1:
         txtColor = "yellow"
     elif color == 2 :
         txtColor = "blue"
@@ -37,16 +41,17 @@ def showChar(buttons1,row, column):
         txtColor = "red"
     else :
         txtColor = "black"
-
-
+    
+    
     if row == 0:
-        buttons1[column].configure(text = "O", fg  = txtColor) 
+        buttons[column].configure(text = "O", fg = txtColor, font = helv36) 
+
     
     if row == 1:
-        buttons2.config(text = "O", fg = txtColor)
+        buttons[column].configure(text = "O", fg = txtColor, font = helv36)
     
     if row == 2:
-        buttons3.config(text = "O", fg = txtColor)
+        buttons[column].configure(text = "O", fg = txtColor, font = helv36)
 
 
 def give_fun(btns,i):
@@ -93,6 +98,7 @@ def start_drawing():
         # button for sponge
     sponge = Button(window , text = "Sponge", fg = 'black', command = lambda: changeColor("red"))
     sponge.grid(row = 5, column = 5, ipadx = 20, ipady = 10)
+
     
     window.mainloop()
 
