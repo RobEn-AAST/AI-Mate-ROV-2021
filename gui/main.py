@@ -53,24 +53,26 @@ button5.place(x=400, y= 50)
    # button for mussel calculating task
 
 label = tk.Label(window, text = "Mussel Calculating" , fg = "green")
-label.place(x= 350, y= 150)
+label.place(x= 350, y= 350)
 entry = tk.Entry(window)
-entry.place(x= 350, y = 170)
+entry.place(x= 350, y = 370)
+entry.insert(0, 'username')
+
 
    # button for calculate
 button6 = tk.Button(window, text = "calculate" , fg = "black", width = 4, height = 1, command = showlitres)
-button6.place(x=500, y= 170)
+button6.place(x=500, y= 370)
 
    # show output
 strLabel = tk.Label(window, text = "Total Amount : " , fg = "red")
-strLabel.place(x= 350, y= 198)
+strLabel.place(x= 350, y= 398)
 res = tk.Label(window, text = 0, fg = "red")
-res.place(x= 470, y= 198)
+res.place(x= 470, y= 398)
 
    # button for saving video
 
 button7 = tk.Button(window, text = "record" , fg = "red", width = 5, height = 2, command = lambda : recordVideo(cam))
-button7.place(x=350, y= 95)
+button7.place(x=100, y= 50)
 
 
 
