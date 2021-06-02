@@ -139,7 +139,7 @@
 
 import cv2
 import numpy as np
-def mainStitching(cam):
+def mainStitching(inputCam):
 	frameWidth = 640
 	frameHeight = 480
 	rect_width = 400
