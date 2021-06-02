@@ -3,7 +3,7 @@ import cv2 as cv
 import math
 from pymavlink import mavutil
 from time import sleep
-
+import sys
 class PipeRange:
     def __init__(self, min_x, max_x, y_co=0.75):
         self.MinX = min_x
@@ -197,8 +197,8 @@ def read_video(inputCam):
     this function is responsible for reading the video/camera frame by frame
     and call multiple functions. May consider it as the main function
     """
-    vid = cv.VideoCapture()
-    while True:f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER
+    vid = cv.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
+    while True:
         readable, frame = vid.read()
         if not readable:
             break
