@@ -1,6 +1,6 @@
-import paramiko
 
 def connection():
+    import paramiko
 
     piIp = "192.168.2.2"
     piUser = "pi"
@@ -12,6 +12,12 @@ def connection():
 
     client.connect(piIp, piUser, piPass)
 
-    ssh_stdin , ssh_stdout , ssh_stderr = client.exec_command('bash ROV-Gstreamer/gst0.sh & bash ROV-Gstreamer/gst1.sh ')  # place your gstreamer command here
+    ssh_stdin , ssh_stdout , ssh_stderr = client.exec_command('bash ROV-Gstreamer/gst0.sh & bash ROV-Gstreamer/gst1.sh')  # place your gstreamer command here
 
-connection()
+
+def altConnection():
+    import spur
+
+    shell = spur.SshShell(hostname="localhost", username="bob", password="password1")
+    with shell:
+        result = shell.run(["bash", "ROV-Gstreamer/gst0.sh", "&", "bash", "ROV-Gstreamer/gst1.sh"])
