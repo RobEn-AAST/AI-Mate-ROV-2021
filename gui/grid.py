@@ -8,10 +8,7 @@ from tkinter import font as tkFont
 window = tk.Tk()
 window.geometry('1500x600')
 window.title("grid mission")
-    # clear button
-clear = Button(window , text = "clear", fg = 'red', command = lambda: start_drawing())
-clear.grid(row = 5, column = 1, ipadx = 10, ipady = 10)
-    
+
 
 helv36 = tkFont.Font(family='Helvetica', size=36, weight=tkFont.BOLD)
 def changeColor(reef):
@@ -41,6 +38,9 @@ def showChar(buttons,row, column):
         txtColor = "red"
     else :
         txtColor = "black"
+    if buttons[column].cget('text') != "":
+        buttons[column].configure(text = "")
+        return
     
     
     if row == 0:
@@ -63,7 +63,7 @@ def start_drawing():
     buttons1 = []
     for i in range(9):
         buttons1.append(Button(master = window, text = ""))
-        buttons1[i].grid(row = 0, column = i, ipadx = 40, ipady = 40)
+        buttons1[i].grid(row = 0, column = i, ipadx = 40, ipady = 60)
         give_fun(buttons1,i)
 
         # buttons for second row
@@ -71,7 +71,7 @@ def start_drawing():
     buttons2 = []
     for i in range(9):
         buttons2.append(Button(master = window, text = ""))
-        buttons2[i].grid(row = 1, column = i, ipadx = 40, ipady = 40)
+        buttons2[i].grid(row = 1, column = i, ipadx = 40, ipady = 60)
         give_fun(buttons2,i)
 
         # buttons for third row
@@ -79,7 +79,7 @@ def start_drawing():
     buttons3 = []
     for i in range(9):
         buttons3.append(Button(master = window, text = ""))
-        buttons3[i].grid(row = 2, column = i, ipadx = 40, ipady = 40)
+        buttons3[i].grid(row = 2, column = i, ipadx = 40, ipady = 60)
         give_fun(buttons3,i)
         
         # button for sea star
