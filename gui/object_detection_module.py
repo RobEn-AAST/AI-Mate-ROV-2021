@@ -14,12 +14,9 @@ Prequisites :-
 from cv2 import cv2
 import numpy as np
 
-
-oldimage = cv2.imread("old.png")
-
 # Defining module Constants
-LOWER_PURPLE = np.array([100, 50, 140])  # Purple HSV lower boundry
-UPPER_PURPLE = np.array([170, 255, 255])  # Purple HSV upper boundry
+# LOWER_PURPLE = np.array([0, 50, 90])  # Purple HSV lower boundry
+# UPPER_PURPLE = np.array([255, 98, 255])  # Purple HSV upper boundry
 LOWER_WHITE = np.array([150, 150, 160])  # White HSV lower boundry
 UPPER_WHITE = np.array([255, 255, 255])  # White HSV upper boundry
 KERNEL_ALLIGN = np.ones((5, 5), np.uint8)  # Kernel used for opening effect
@@ -35,10 +32,12 @@ COLORS = {
 }
 AREA_TOLERANCE = 1000  # Difference in area tolerence
 MIN_MATCH_COUNT = 10  # Matching Tolerence
-bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
 
 
-def extract(image, debug=False):
+
+
+
+def extract(image, UPPER_PURPLE, LOWER_PURPLE, UPPER_WHITE, LOWER_WHITE,debug=False):
     """ 
 Python function that extracts purple and white parts out of an image 
     
@@ -58,7 +57,10 @@ outputs :-
     
     
     """
+    imageClone = image.copy()
+    image = cv2.cvtColor(image ,cv2.COLOR_BGR2HSV)
     purple_mask = cv2.inRange(image, LOWER_PURPLE, UPPER_PURPLE)
+    print(LOWER_PURPLE)
     white_mask = cv2.inRange(image, LOWER_WHITE, UPPER_WHITE)
     white = cv2.bitwise_and(image, image, mask=white_mask)
     purple = cv2.bitwise_and(image, image, mask=purple_mask)
@@ -69,10 +71,36 @@ outputs :-
     # Print debug info if debug mode is on
     if debug:
         cv2.imshow("extraction result", np.hstack([image, purple, white]))
-        cv2.waitKey(0)
-    return {'original': image, 'white': white, 'purple': purple}
+    return {'original': imageClone, 'white': white, 'purple': purple}
 
-old_image_ext = extract(oldimage)
+def remove_back_ground(image):
+    """ 
+utilizes the color extraction function extract() to remove background from image
+    
+arguments :-
+------------
+
+- image -> an numpy array representing the image to remove the area from ( can be read using open cv ).
+
+outputs :-
+----------
+
+- The image after removing the background.
+    
+"""
+#     LOWER_PURPLE = np.array([0, 50, 90])  # Purple HSV lower boundry
+#     UPPER_PURPLE = np.array([255, 98, 255])  # Purple HSV upper boundry
+#     parts = extract(image,UPPER_PURPLE, LOWER_PURPLE, debug=False)
+#     return cv2.bitwise_xor(parts["purple"], parts["white"])
+
+oldimage = cv2.imread("old.png")
+width,heigth = oldimage.shape[1],oldimage.shape[0]
+old_image_ext = remove_back_ground(oldimage)
+
+bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
+
+
+
 
 
 def to_black_and_white(image, debug=False):
@@ -193,23 +221,6 @@ outputs :-
     return out
 
 
-def remove_back_ground(image):
-    """ 
-utilizes the color extraction function extract() to remove background from image
-    
-arguments :-
-------------
-
-- image -> an numpy array representing the image to remove the area from ( can be read using open cv ).
-
-outputs :-
-----------
-
-- The image after removing the background.
-    
-"""
-    parts = extract(image, debug=False)
-    return cv2.bitwise_xor(parts["purple"], parts["white"])
 
 
 def get_colony_area(image):
@@ -233,27 +244,6 @@ outputs :-
     _c = max(contours, key=cv2.contourArea)
     return float(cv2.contourArea(_c))
 
-
-def adjust_distance(frame):
-    """ 
-compares 2 objects in 2 images and returns the difference in size between the 2 objects in them
-    
-arguments :-
-------------
-
-1 - old_image -> an numpy array representing the old image ( can be read using open cv ).
-2 - frame -> an numpy array representing the current frame in the camera stream ( can be read using open cv ).
-
-outputs :-
-----------
-
-- Ratio between new object size and old object size.
-    
-    """
-    frame_d = get_colony_area(frame)
-    old_image_d = get_colony_area(oldimage)
-    return frame_d / old_image_d
-
 def Pixelated_Clean_Image_beta(image, kernel=np.ones((5,5),np.uint8), noiseKernel=np.ones((2,2),np.uint8)):
     opened = cv2.morphologyEx(image, cv2.MORPH_OPEN, noiseKernel)
     dilated = cv2.dilate(opened,kernel,iterations = 1)
@@ -268,7 +258,7 @@ def addassistant(background,overlay):
     return background_tmp
 
 
-def check_for_matches(old_image,new_image,debug = False):
+def check_for_matches(new_image,old_image,debug = False):
     """ checks if 2 images match and returns if they match and the number of good matches """
     #detect matches and sort them
     matches = bf.match(
@@ -283,6 +273,6 @@ def check_for_matches(old_image,new_image,debug = False):
    # Print debug info if debug mode is on
     if debug:
         print("matching percentage = " + str( (numgoodmatches/MAX_FEATURES) * 100))
-    return (num_of_matches >= MAX_FEATURES,numgoodmatches)
+    return num_of_matches >= MAX_FEATURES
 
 # End of module
