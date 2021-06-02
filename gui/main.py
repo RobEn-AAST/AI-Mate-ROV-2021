@@ -8,7 +8,8 @@ from task_2_2 import colonyhealthfunction
 cam = "0" # camera 0
 
 def changeString(camera):
-   global cam = camera
+   global cam
+   camera = cam
    print(cam)
 
 
