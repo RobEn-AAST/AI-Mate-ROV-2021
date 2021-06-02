@@ -56,7 +56,6 @@ label = tk.Label(window, text = "Mussel Calculating" , fg = "green")
 label.place(x= 350, y= 350)
 entry = tk.Entry(window)
 entry.place(x= 350, y = 370)
-entry.insert(0, 'username')
 
 
    # button for calculate
@@ -73,6 +72,11 @@ res.place(x= 470, y= 398)
 
 button7 = tk.Button(window, text = "record" , fg = "red", width = 5, height = 2, command = lambda : recordVideo(cam))
 button7.place(x=100, y= 50)
+
+   # button for grid mission
+
+button8 = tk.Button(window, text = "GRID \n TASK" , fg = "blue", width = 14, height = 5)
+button8.place(x=100, y= 450)
 
 
 
