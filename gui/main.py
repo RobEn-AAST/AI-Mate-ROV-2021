@@ -7,10 +7,9 @@ from task_2_2 import colonyhealthfunction
 
 cam = "0" # camera 0
 
-def changeString(camera):
+def changeString(cameraNum):
    global cam
-   camera = cam
-   print(cam)
+   cam = cameraNum
 
 
 window = tk.Tk()
