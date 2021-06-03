@@ -57,7 +57,7 @@ def colonyhealthfunction():
 
 # Get default camera window size
     frame = cap.read()[1]
-    # frame = simplest_cb(frame)
+    frame = simplest_cb(frame)
     Height, Width = frame.shape[:2]
     old_image = cv2.resize(old_image, (Width, Height))
     global FRAME_COUNT
@@ -109,13 +109,13 @@ cv2.createTrackbar('purple lower 1', 'tracks purple', 109, 255, nothing)
 cv2.createTrackbar('purple lower 2', 'tracks purple', 0, 255, nothing)
 cv2.createTrackbar('purple lower 3', 'tracks purple', 55, 255, nothing)
 
-cv2.createTrackbar('white upper 1', 'tracks white', 150, 255, nothing)
-cv2.createTrackbar('white upper 2', 'tracks white', 150, 255, nothing)
-cv2.createTrackbar('white upper 3', 'tracks white', 160, 255, nothing)
+cv2.createTrackbar('white upper 1', 'tracks white', 255, 255, nothing)
+cv2.createTrackbar('white upper 2', 'tracks white', 255, 255, nothing)
+cv2.createTrackbar('white upper 3', 'tracks white', 255, 255, nothing)
 
-cv2.createTrackbar('white lower 1', 'tracks white', 255, 255, nothing)
-cv2.createTrackbar('white lower 2', 'tracks white', 255, 255, nothing)
-cv2.createTrackbar('white lower 3', 'tracks white', 255, 255, nothing)
+cv2.createTrackbar('white lower 1', 'tracks white', 95, 255, nothing)
+cv2.createTrackbar('white lower 2', 'tracks white', 99, 255, nothing)
+cv2.createTrackbar('white lower 3', 'tracks white', 109, 255, nothing)
 
 
 # frame = cv2.imread('test.png')
@@ -143,12 +143,24 @@ while(True):
         # print(UPPER_PURPLE)
         UPPER_PURPLE = np.array([trackbar1up, trackbar2up, trackbar3up])
         LOWER_PURPLE = np.array([trackbar1lp, trackbar2lp, trackbar3lp])
-        
-        UPPER_WHITE = np.array([trackbar1uw, trackbar2uw, trackbar3uw])
+        orig = frame.copy()
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        radius = 9
+        gray = cv2.GaussianBlur(gray, (radius, radius), 0)
+        _, White_val, _, White_loc = cv2.minMaxLoc(gray)
+        # White_val = cv2.cvtColor(White_val, cv2.COLOR_BGR2HSV)
+        White_loc = White_loc[1], White_loc[0]
+        (a,b,c) = frame[White_loc][0], frame[White_loc][1], frame[White_loc][2]
+        hsv_up_white = cv2.cvtColor((a,b,c), cv2.COLOR_BGR2HSV)
+        cv2.setTrackbarPos('white upper 1','tracks white',hsv_up_white[0])
+        cv2.setTrackbarPos('white upper 2','tracks white',hsv_up_white[1])
+        cv2.setTrackbarPos('white upper 3','tracks white',hsv_up_white[2])
+ 
+        print(White_val)
         LOWER_WHITE = np.array([trackbar1lw, trackbar2lw, trackbar3lw])
-        
+        UPPER_WHITE = np.array([trackbar1uw, trackbar2uw, trackbar3uw])
         images = extract(frame, UPPER_PURPLE, LOWER_PURPLE, UPPER_WHITE, LOWER_WHITE)
-
+        
         # nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(images['purple'], connectivity=8)
         # sizes = stats[1:, -1]; nb_components = nb_components - 1
         # min_size = cv2.getTrackbarPos('tracks','AREA')
