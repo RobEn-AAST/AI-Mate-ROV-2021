@@ -16,8 +16,8 @@ L_RANGE = PipeRange(0.08, 0.3)  # permitted range for the left blue pipe within 
 R_RANGE = PipeRange(0.7, 0.92)  # permitted range for the right blue pipe within X-axis
 BLUE_PIPE_COLOR_RANGE = [[99, 173, 80], [112, 255, 174]]  # the HSV color range for the blue pipes
 PIPES_DISTANCE = [0.78, 0.62]  # permitted distance between both blue pipes [0]:max-distance, [1]:min-distance
-CAPTURE_FROM = "vid.mp4"  # path for capturing the video. change it to int(0), int(1)...
-# CAPTURE_FROM = "f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER"  # path for capturing the video. change it to int(0), int(1)...
+# CAPTURE_FROM = "vid.mp4"  # path for capturing the video. change it to int(0), int(1)...
+CAPTURE_FROM = "f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER"  # path for capturing the video. change it to int(0), int(1)...
 # to get frames from an external camera.
 ''' ^^^^^^^^^ '''
 
@@ -83,33 +83,33 @@ def send_commands(frame, midpoint_right, midpoint_left):
     # sending data according to the position of the blue pipes
     if midpoint_left[0] <= int(frame.shape[1] * L_RANGE.MinX):
         print('go left')
-        signals = np.array([500,-500,500,0,0])
+        signals = np.array([750,-500,500,0,0])
         # master.mav.manual_control_send(master.target_system,0,-250,250,0,0)
     elif midpoint_left[0] >= int(frame.shape[1] * L_RANGE.MaxX):
         print('go right')
-        signals = np.array([500,500,500,0,0])
+        signals = np.array([750,500,500,0,0])
 
         # master.mav.manual_control_send(master.target_system,0,250,250,0,0)
     elif midpoint_right[0] <= int(frame.shape[1] * R_RANGE.MinX):
         print('go left')
-        signals = np.array([500,-500,500,0,0])
+        signals = np.array([750,-500,500,0,0])
         
         # master.mav.manual_control_send(master.target_system,0,-250,250,0,0)
     elif midpoint_right[0] >= int(frame.shape[1] * R_RANGE.MaxX):
         print('go right')
-        signals = np.array([500,500,500,0,0])
+        signals = np.array([750,500,500,0,0])
         
         # master.mav.manual_control_send(master.target_system,0,250,250,0,0)
 
     # sending data according to the distance between the pipes
     if dist >= int(frame.shape[1]*PIPES_DISTANCE[0]):
         print('go up')
-        signals = np.array([500,0,250,0,0])
+        signals = np.array([750,0,250,0,0])
 
         # master.mav.manual_control_send(master.target_system,0,0,500,0,0)
     elif dist <= int(frame.shape[1]*PIPES_DISTANCE[1]):
         print('go down')
-        signals = np.array([500,0,650,0,0])
+        signals = np.array([750,0,750,0,0])
 
         # master.mav.manual_control_send(master.target_system,0,0,-500,0,0)
 
@@ -209,7 +209,7 @@ def read_video(inputCam):
     ##############################################################
                 #control part
     # Create the connection
-    master = mavutil.mavlink_connection('udpin:0.0.0.0:14550')
+    master = mavutil.mavlink_connection('udpin:0.0.0.0:14552')
     # Wait a heartbeat before sending commands
     master.wait_heartbeat()
 
@@ -221,7 +221,7 @@ def read_video(inputCam):
         1, 0, 0, 0, 0, 0, 0)
     ##############################################################
 
-    vid = cv.VideoCapture(CAPTURE_FROM)
+    vid = cv.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv.CAP_GSTREAMER)
 
     setMode(master)
 
@@ -255,4 +255,3 @@ def read_video(inputCam):
 
 #read_video()  # this function is responsible for reading video/camera frames and call every other function
 #cv.destroyAllWindows()
-read_video(1)

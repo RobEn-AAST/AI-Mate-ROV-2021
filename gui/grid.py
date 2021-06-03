@@ -99,4 +99,4 @@ def start_drawing():
     window.mainloop()
 
 
-# start_drawing()
+start_drawing()

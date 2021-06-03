@@ -22,7 +22,7 @@ oldimage = cv2.imread("old.jpeg")
 # Read old image and resize it to the size of the camera dimensions
 
 def colonyhealthfunction(inputCam):
-    cap = cv2.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv.CAP_GSTREAMER)
+    cap = cv2.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
     global assistant
     global oldimage
     global old_image
