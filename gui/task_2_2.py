@@ -25,7 +25,7 @@ contours = {'growth_cnts': [], 'death_cnts': [], 'blotching_cnts': [], 'recovery
 
 def colonyhealthfunction(inputCam):
     global old_image
-    cap = cv.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
+    cap = cv.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv.CAP_GSTREAMER)
 
 # Get default camera window size
     frame = cap.read()[1]
