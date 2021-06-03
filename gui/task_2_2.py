@@ -61,4 +61,4 @@ def colonyhealthfunction(inputCam):
     cap.release()
     cv2.destroyAllWindows()
 
-colonyhealthfunction()
+#colonyhealthfunction()
