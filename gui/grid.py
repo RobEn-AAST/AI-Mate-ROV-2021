@@ -2,32 +2,26 @@ import tkinter as tk
 from tkinter import *
 from tkinter import Label
 import numpy as np
+from tkinter import font as tkFont 
 
-window = tk.Tk()
-window.geometry('1100x400')
-window.title("grid mission")
-
-
-color = 0
 def changeColor(reef):
-
+    global color
     if reef == "yellow":
-        color = 1
-        return
+        color = 1 
     if reef == "blue":
         color = 2
-        return
+        
     if reef == "green":
         color = 3
-        return
+        
     if reef == "red":
         color = 4
-        return
+    return color
 
 
-def showChar(buttons1,row, column):
-    
-    if color == 1 :
+def showChar(buttons,row, column, helv36):  
+    global color
+    if color == 1:
         txtColor = "yellow"
     elif color == 2 :
         txtColor = "blue"
@@ -37,45 +31,52 @@ def showChar(buttons1,row, column):
         txtColor = "red"
     else :
         txtColor = "black"
-
-
+    if buttons[column].cget('text') != "":
+        buttons[column].configure(text = "")
+        return
+    
+    
     if row == 0:
-        buttons1[column].configure(text = "O", fg  = txtColor) 
+        buttons[column].configure(text = "O", fg = txtColor, font = helv36) 
+
     
     if row == 1:
-        buttons2.config(text = "O", fg = txtColor)
+        buttons[column].configure(text = "O", fg = txtColor, font = helv36)
     
     if row == 2:
-        buttons3.config(text = "O", fg = txtColor)
+        buttons[column].configure(text = "O", fg = txtColor, font = helv36)
 
 
-def give_fun(btns,i):
-    btns[i].configure(command = lambda: showChar(btns,0,i))
+def give_fun(btns,i,helv36):
+    btns[i].configure(command = lambda: showChar(btns,0,i,helv36))
 # buttons for first row
 
 def start_drawing():
-
+    window = tk.Tk()
+    window.geometry('1500x600')
+    window.title("grid mission")
+    helv36 = tkFont.Font(family='Helvetica', size=36, weight=tkFont.BOLD)
     buttons1 = []
     for i in range(9):
         buttons1.append(Button(master = window, text = ""))
-        buttons1[i].grid(row = 0, column = i, ipadx = 40, ipady = 40)
-        give_fun(buttons1,i)
+        buttons1[i].grid(row = 0, column = i, ipadx = 40, ipady = 60)
+        give_fun(buttons1,i,helv36)
 
         # buttons for second row
 
     buttons2 = []
     for i in range(9):
         buttons2.append(Button(master = window, text = ""))
-        buttons2[i].grid(row = 1, column = i, ipadx = 40, ipady = 40)
-        give_fun(buttons2,i)
+        buttons2[i].grid(row = 1, column = i, ipadx = 40, ipady = 60)
+        give_fun(buttons2,i,helv36)
 
         # buttons for third row
 
     buttons3 = []
     for i in range(9):
         buttons3.append(Button(master = window, text = ""))
-        buttons3[i].grid(row = 2, column = i, ipadx = 40, ipady = 40)
-        give_fun(buttons3,i)
+        buttons3[i].grid(row = 2, column = i, ipadx = 40, ipady = 60)
+        give_fun(buttons3,i,helv36)
         
         # button for sea star
 
@@ -93,8 +94,9 @@ def start_drawing():
         # button for sponge
     sponge = Button(window , text = "Sponge", fg = 'black', command = lambda: changeColor("red"))
     sponge.grid(row = 5, column = 5, ipadx = 20, ipady = 10)
+
     
     window.mainloop()
 
 
-start_drawing()
+# start_drawing()
