@@ -23,7 +23,7 @@ KERNEL_ALLIGN = np.ones((5, 5), np.uint8)  # Kernel used for opening effect
 KERNEL_ERODE = np.ones((3,3),np.uint8)
 MAX_FEATURES = 100  # Maximum number of features to be detected
 GOOD_MATCH_PERCENT = 0.15  # Matching tolerence
-AREA = 250  # Minimum contour area
+AREA = 450  # Minimum contour area
 COLORS = {
     "GREEN": (0, 255, 0),
     "YELLOW": (0, 255, 255),
