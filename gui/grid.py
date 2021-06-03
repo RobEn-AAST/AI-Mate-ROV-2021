@@ -4,13 +4,6 @@ from tkinter import Label
 import numpy as np
 from tkinter import font as tkFont 
 
-
-window = tk.Tk()
-window.geometry('1500x600')
-window.title("grid mission")
-
-
-helv36 = tkFont.Font(family='Helvetica', size=36, weight=tkFont.BOLD)
 def changeColor(reef):
     global color
     if reef == "yellow":
@@ -26,7 +19,7 @@ def changeColor(reef):
     return color
 
 
-def showChar(buttons,row, column):  
+def showChar(buttons,row, column, helv36):  
     global color
     if color == 1:
         txtColor = "yellow"
@@ -54,17 +47,20 @@ def showChar(buttons,row, column):
         buttons[column].configure(text = "O", fg = txtColor, font = helv36)
 
 
-def give_fun(btns,i):
-    btns[i].configure(command = lambda: showChar(btns,0,i))
+def give_fun(btns,i,helv36):
+    btns[i].configure(command = lambda: showChar(btns,0,i,helv36))
 # buttons for first row
 
 def start_drawing():
-
+    window = tk.Tk()
+    window.geometry('1500x600')
+    window.title("grid mission")
+    helv36 = tkFont.Font(family='Helvetica', size=36, weight=tkFont.BOLD)
     buttons1 = []
     for i in range(9):
         buttons1.append(Button(master = window, text = ""))
         buttons1[i].grid(row = 0, column = i, ipadx = 40, ipady = 60)
-        give_fun(buttons1,i)
+        give_fun(buttons1,i,helv36)
 
         # buttons for second row
 
@@ -72,7 +68,7 @@ def start_drawing():
     for i in range(9):
         buttons2.append(Button(master = window, text = ""))
         buttons2[i].grid(row = 1, column = i, ipadx = 40, ipady = 60)
-        give_fun(buttons2,i)
+        give_fun(buttons2,i,helv36)
 
         # buttons for third row
 
@@ -80,7 +76,7 @@ def start_drawing():
     for i in range(9):
         buttons3.append(Button(master = window, text = ""))
         buttons3[i].grid(row = 2, column = i, ipadx = 40, ipady = 60)
-        give_fun(buttons3,i)
+        give_fun(buttons3,i,helv36)
         
         # button for sea star
 
@@ -103,4 +99,4 @@ def start_drawing():
     window.mainloop()
 
 
-start_drawing()
+# start_drawing()
