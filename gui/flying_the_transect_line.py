@@ -17,23 +17,9 @@ R_RANGE = PipeRange(0.7, 0.92)  # permitted range for the right blue pipe within
 BLUE_PIPE_COLOR_RANGE = [[99, 173, 80], [112, 255, 174]]  # the HSV color range for the blue pipes
 PIPES_DISTANCE = [0.78, 0.62]  # permitted distance between both blue pipes [0]:max-distance, [1]:min-distance
 CAPTURE_FROM = "vid.mp4"  # path for capturing the video. change it to int(0), int(1)...
+# CAPTURE_FROM = "f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER"  # path for capturing the video. change it to int(0), int(1)...
 # to get frames from an external camera.
 ''' ^^^^^^^^^ '''
-##############################################################
-               #control part
-# Create the connection
-master = mavutil.mavlink_connection('udpin:0.0.0.0:14550')
-# Wait a heartbeat before sending commands
-master.wait_heartbeat()
-
-master.mav.command_long_send(
-    master.target_system,
-    master.target_component,
-    mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
-    0,
-    1, 0, 0, 0, 0, 0, 0)
-##############################################################
-
 
 def color_detection(img_orig, values_min, values_max, show_detection=True):
     """
@@ -97,39 +83,61 @@ def send_commands(frame, midpoint_right, midpoint_left):
     # sending data according to the position of the blue pipes
     if midpoint_left[0] <= int(frame.shape[1] * L_RANGE.MinX):
         print('go left')
-        signals = np.array([0,-250,250,0,0])
+        signals = np.array([500,-500,500,0,0])
         # master.mav.manual_control_send(master.target_system,0,-250,250,0,0)
     elif midpoint_left[0] >= int(frame.shape[1] * L_RANGE.MaxX):
         print('go right')
-        signals = np.array([0,250,250,0,0])
+        signals = np.array([500,500,500,0,0])
 
         # master.mav.manual_control_send(master.target_system,0,250,250,0,0)
     elif midpoint_right[0] <= int(frame.shape[1] * R_RANGE.MinX):
         print('go left')
-        signals = np.array([0,-250,250,0,0])
+        signals = np.array([500,-500,500,0,0])
         
         # master.mav.manual_control_send(master.target_system,0,-250,250,0,0)
     elif midpoint_right[0] >= int(frame.shape[1] * R_RANGE.MaxX):
         print('go right')
-        signals = np.array([0,250,250,0,0])
+        signals = np.array([500,500,500,0,0])
         
         # master.mav.manual_control_send(master.target_system,0,250,250,0,0)
 
     # sending data according to the distance between the pipes
     if dist >= int(frame.shape[1]*PIPES_DISTANCE[0]):
         print('go up')
-        signals = np.array([0,0,500,0,0])
+        signals = np.array([500,0,250,0,0])
 
         # master.mav.manual_control_send(master.target_system,0,0,500,0,0)
     elif dist <= int(frame.shape[1]*PIPES_DISTANCE[1]):
         print('go down')
-        signals = np.array([0,0,-500,0,0])
+        signals = np.array([500,0,650,0,0])
 
         # master.mav.manual_control_send(master.target_system,0,0,-500,0,0)
 
     return signals
 
+def setMode(master):
+    # Choose a mode
+    #Try: ['STABILIZE', 'ACRO', 'ALT_HOLD', 'AUTO', 'GUIDED', 'CIRCLE', 'SURFACE', 'POSHOLD', 'MANUAL']
+    mode = 'STABILIZE'
 
+    # Check if mode is available
+    if mode not in master.mode_mapping():
+        print('Unknown mode : {}'.format(mode))
+        print('Try:', list(master.mode_mapping().keys()))
+        sys.exit(1)
+
+    # Get mode ID
+    mode_id = master.mode_mapping()[mode]
+    # Set new mode
+    # master.mav.command_long_send(
+    #    master.target_system, master.target_component,
+    #    mavutil.mavlink.MAV_CMD_DO_SET_MODE, 0,
+    #    0, mode_id, 0, 0, 0, 0, 0) or:
+    # master.set_mode(mode_id) or:
+    master.mav.set_mode_send(
+        master.target_system,
+        mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
+        mode_id)
 def highlight_pipes(frame, left_co, right_co):
     """
     this function is responsible for drawing on the screen each frame for visualization purposes
@@ -197,7 +205,26 @@ def read_video(inputCam):
     this function is responsible for reading the video/camera frame by frame
     and call multiple functions. May consider it as the main function
     """
-    vid = cv.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
+
+    ##############################################################
+                #control part
+    # Create the connection
+    master = mavutil.mavlink_connection('udpin:0.0.0.0:14550')
+    # Wait a heartbeat before sending commands
+    master.wait_heartbeat()
+
+    master.mav.command_long_send(
+        master.target_system,
+        master.target_component,
+        mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+        0,
+        1, 0, 0, 0, 0, 0, 0)
+    ##############################################################
+
+    vid = cv.VideoCapture(CAPTURE_FROM)
+
+    setMode(master)
+
     while True:
         readable, frame = vid.read()
         if not readable:
@@ -217,7 +244,7 @@ def read_video(inputCam):
         # master.mav.manual_control_send(master.target_system,250,0,250,0,0)
         control_signals = send_commands(frame, midpoint_right, midpoint_left)
         
-        master.mav.manual_control_send(master.target_system,control_signals)
+        master.mav.manual_control_send(master.target_system,*control_signals)
 
         cv.imshow("Modified frames", frame)
 
@@ -228,3 +255,4 @@ def read_video(inputCam):
 
 #read_video()  # this function is responsible for reading video/camera frames and call every other function
 #cv.destroyAllWindows()
+read_video(1)

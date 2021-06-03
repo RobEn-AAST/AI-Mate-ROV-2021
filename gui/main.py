@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import *
 from stitching import mainStitching
-from flying_the_transect_line import read_video
+# from flying_the_transect_line import read_video
 from task_2_2 import colonyhealthfunction
 from musselsTask import calcLitres
 from saveVideo import recordVideo
+from grid import start_drawing 
 
 cam = "0" # camera 0
 
@@ -21,13 +22,13 @@ def showlitres():
 
 
 window = tk.Tk()
-window.geometry('700x700')
+window.geometry('1500x700')
 window.title("run rov")
 
    # the button for transect line mission 
 
-button1 = tk.Button(window, text = "FLYING  \n TRANSECT \nLINE" , fg = "blue", width = 14, height = 5, command = lambda : read_video(cam))
-button1.place(x=100, y= 150)
+# button1 = tk.Button(window, text = "FLYING  \n TRANSECT \nLINE" , fg = "blue", width = 14, height = 5, command = lambda : read_video(cam))
+# button1.place(x=100, y= 150)
 
    # the button for color detection mission
 
@@ -76,13 +77,8 @@ button7.place(x=100, y= 50)
 
    # button for grid mission
 
-button8 = tk.Button(window, text = "GRID \n TASK" , fg = "blue", width = 14, height = 5)
+button8 = tk.Button(window, text = "GRID \n TASK" , fg = "blue", width = 14, height = 5, command = lambda: start_drawing())
 button8.place(x=100, y= 450)
-
-
-
-
-
 
 
 

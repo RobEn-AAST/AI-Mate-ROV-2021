@@ -1,0 +1,6 @@
+settings.json
+*.pyc
+*pycache*
+*.mp4
+*.png
+*test*
