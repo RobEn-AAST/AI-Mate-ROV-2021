@@ -83,33 +83,33 @@ def send_commands(frame, midpoint_right, midpoint_left):
     # sending data according to the position of the blue pipes
     if midpoint_left[0] <= int(frame.shape[1] * L_RANGE.MinX):
         print('go left')
-        signals = np.array([750,-500,500,0,0])
+        signals = np.array([500,-500,500,0,0])
         # master.mav.manual_control_send(master.target_system,0,-250,250,0,0)
     elif midpoint_left[0] >= int(frame.shape[1] * L_RANGE.MaxX):
         print('go right')
-        signals = np.array([750,500,500,0,0])
+        signals = np.array([500,500,500,0,0])
 
         # master.mav.manual_control_send(master.target_system,0,250,250,0,0)
     elif midpoint_right[0] <= int(frame.shape[1] * R_RANGE.MinX):
         print('go left')
-        signals = np.array([750,-500,500,0,0])
+        signals = np.array([500,-500,500,0,0])
         
         # master.mav.manual_control_send(master.target_system,0,-250,250,0,0)
     elif midpoint_right[0] >= int(frame.shape[1] * R_RANGE.MaxX):
         print('go right')
-        signals = np.array([750,500,500,0,0])
+        signals = np.array([500,500,500,0,0])
         
         # master.mav.manual_control_send(master.target_system,0,250,250,0,0)
 
     # sending data according to the distance between the pipes
     if dist >= int(frame.shape[1]*PIPES_DISTANCE[0]):
         print('go up')
-        signals = np.array([750,0,250,0,0])
+        signals = np.array([500,0,250,0,0])
 
         # master.mav.manual_control_send(master.target_system,0,0,500,0,0)
     elif dist <= int(frame.shape[1]*PIPES_DISTANCE[1]):
         print('go down')
-        signals = np.array([750,0,750,0,0])
+        signals = np.array([500,0,750,0,0])
 
         # master.mav.manual_control_send(master.target_system,0,0,-500,0,0)
 
@@ -222,6 +222,7 @@ def read_video(inputCam):
     ##############################################################
 
     vid = cv.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv.CAP_GSTREAMER)
+    # vid = cv.VideoCapture("vid.mp4")
 
     setMode(master)
 
