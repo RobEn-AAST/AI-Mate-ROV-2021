@@ -3,6 +3,8 @@ import cv2 as cv
 import math
 from pymavlink import mavutil
 from time import sleep
+import hsv_sliders
+import keyboard as kb
 
 class PipeRange:
     def __init__(self, min_x, max_x, y_co=0.75):
@@ -21,18 +23,13 @@ CAPTURE_FROM = "f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=J
 # to get frames from an external camera.
 ''' ^^^^^^^^^ '''
 
-def color_detection(img_orig, values_min, values_max, show_detection=True):
+def color_detection(img_hsv, values_min, values_max, show_detection=True):
     """
     this function detects the pipes by given colors values.
 
     :return: a mask of the pipes.
     """
-    img_hsv = cv.cvtColor(img_orig, cv.COLOR_BGR2HSV)
     mask = cv.inRange(img_hsv, np.array(values_min), np.array(values_max))
-    if show_detection:
-        img_res = cv.bitwise_and(img_orig, img_orig, mask=mask)
-        cv.imshow("Masked hsv image", mask)
-        cv.imshow("Masked orig image", img_res)
     return mask
 
 
@@ -138,6 +135,7 @@ def setMode(master):
         master.target_system,
         mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
         mode_id)
+
 def highlight_pipes(frame, left_co, right_co):
     """
     this function is responsible for drawing on the screen each frame for visualization purposes
@@ -222,31 +220,43 @@ def read_video(inputCam):
     ##############################################################
 
     vid = cv.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv.CAP_GSTREAMER)
-    # vid = cv.VideoCapture("vid.mp4")
 
     setMode(master)
 
+    start_sending_commands = False
+    global BLUE_PIPE_COLOR_RANGE
     while True:
         readable, frame = vid.read()
+        img_hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
         if not readable:
             break
-        # cv.imshow("Camera Frames", frame)
+        
+        if kb.is_pressed('x'):
+            cv.waitKey(30)
+            BLUE_PIPE_COLOR_RANGE = hsv_sliders.color_detect_trackbars(frame, BLUE_PIPE_COLOR_RANGE)
 
-        # this function detects the pipes by there color and creates and mask for the detection
+        elif kb.is_pressed('c'):
+            cv.waitKey(30)
+            start_sending_commands = not start_sending_commands
+
         mask_blue = \
-            color_detection(frame, BLUE_PIPE_COLOR_RANGE[0], BLUE_PIPE_COLOR_RANGE[1], show_detection=False)
+            color_detection(img_hsv, BLUE_PIPE_COLOR_RANGE[0], BLUE_PIPE_COLOR_RANGE[1], show_detection=False)
 
         # this function detects the blue pipes and draw guides for visualization
         midpoint_right, midpoint_left = detect_pipes(frame, mask_blue)
 
-
-
         # this function is fully responsible for printing/sending commands through serial port
-        # master.mav.manual_control_send(master.target_system,250,0,250,0,0)
-        control_signals = send_commands(frame, midpoint_right, midpoint_left)
-        
-        master.mav.manual_control_send(master.target_system,*control_signals)
-
+        if start_sending_commands:
+            frame = cv.putText(frame, 'Sending commands', (50, 50), cv.FONT_HERSHEY_SIMPLEX, 
+                   1, (0, 0, 255), 2, cv.LINE_AA)
+            frame = cv.putText(frame, 'c: to stop sending', (50, 100), cv.FONT_HERSHEY_SIMPLEX, 
+                   1, (0, 0, 255), 2, cv.LINE_AA)      
+            send_commands(frame, midpoint_right, midpoint_left)
+        else:
+            frame = cv.putText(frame, "x: change color values", (50, 50), cv.FONT_HERSHEY_SIMPLEX, 
+                  1, (255, 255, 255), 2, cv.LINE_AA)
+            frame = cv.putText(frame, 'c:start sending commands', (50, 100), cv.FONT_HERSHEY_SIMPLEX, 
+            1, (255, 255, 255), 2, cv.LINE_AA)
         cv.imshow("Modified frames", frame)
 
         if cv.waitKey(30) & 0xFF == ord('q'):
@@ -254,5 +264,3 @@ def read_video(inputCam):
     vid.release()
     cv.destroyAllWindows()
 
-#read_video()  # this function is responsible for reading video/camera frames and call every other function
-#cv.destroyAllWindows()
