@@ -220,6 +220,7 @@ def read_video(inputCam):
     ##############################################################
 
     vid = cv.VideoCapture(f'udpsrc port=5{inputCam}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv.CAP_GSTREAMER)
+    # vid = cv.VideoCapture(0)
 
     setMode(master)
 

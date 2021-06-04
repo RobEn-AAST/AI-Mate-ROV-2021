@@ -6,3 +6,8 @@ settings.json
 *test*
 *.jpg
 *.jpeg
+*media*
+.DS*
+settings.json
+*.mp4
+settings.json
