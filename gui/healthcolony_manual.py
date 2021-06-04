@@ -34,7 +34,7 @@ def mouse_drawing(event, x, y, flags, params):
 def coralRead(camInput):
 
   cap = cv2.VideoCapture(f'udpsrc port=5{camInput}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
-#   cap = cv2.VideoCapture(0)
+  cap = cv2.VideoCapture(0)
   cv2.namedWindow("Frame")
   cv2.setMouseCallback("Frame", mouse_drawing)
   flag_stop = True
@@ -50,11 +50,11 @@ def coralRead(camInput):
       
         if cv2.waitKey(30) & 0xFF == ord('g'):
           color_list[num_rect-1] = GREEN
-        elif cv2.waitKey(30) & 0xFF == ord('r'):
+        elif cv2.waitKey(30) & 0xFF == ord('b'):
           color_list[num_rect-1] = RED
         elif cv2.waitKey(30) & 0xFF == ord('d'):
           color_list[num_rect-1] = YELLOW
-        elif cv2.waitKey(30) & 0xFF == ord('b'):
+        elif cv2.waitKey(30) & 0xFF == ord('r'):
           color_list[num_rect-1] = BLUE
     if cv2.waitKey(30) & 0xFF == ord('q'):
         flag_stop = False
