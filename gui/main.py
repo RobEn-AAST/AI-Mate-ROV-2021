@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import *
+import threading
 from stitching import mainStitching
 from flying_the_transect_line import read_video
 from task_2_2 import colonyhealthfunction
@@ -20,6 +21,10 @@ def showlitres():
    res.config(text = amount)
    print(amount)
    return amount
+
+def threadRecorder(cameraNum):
+   thread = threading.Thread(target=recordVideo, args=(cameraNum,))
+   thread.start()
 
 
 window = tk.Tk()
@@ -72,8 +77,8 @@ res = tk.Label(window, text = 0, fg = "red")
 res.place(x= 470, y= 398)
 
    # button for saving video
-
-button7 = tk.Button(window, text = "record" , fg = "red", width = 5, height = 2, command = lambda : recordVideo(cam))
+   # with threading to record while doing other things
+button7 = tk.Button(window, text = "record" , fg = "red", width = 5, height = 2, command = lambda : threadRecorder(cam))
 button7.place(x=100, y= 50)
 
    # button for grid mission
