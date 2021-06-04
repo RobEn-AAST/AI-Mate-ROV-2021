@@ -67,9 +67,6 @@ outputs :-
     return purple
 
 
-oldimage = cv2.imread("old.jpeg")
-width,heigth = oldimage.shape[1],oldimage.shape[0]
-oldimage = extract(oldimage)
 bf = cv2.DescriptorMatcher_create(cv2.DESCRIPTOR_MATCHER_BRUTEFORCE_HAMMING)
 
 
