@@ -17,24 +17,28 @@ BLACK = (0,0,0)
 s_list = []
 e_list = []
 color_list = []
+isclicked = False
+
 def mouse_drawing(event, x, y, flags, params):
-    global s_point, e_point, drawing, num_rect, s_list, e_list, read
-    if event == cv2.EVENT_LBUTTONDOWN:
+    global s_point, e_point, drawing, num_rect, s_list, e_list, read,isclicked
+    if event == cv2.EVENT_LBUTTONDOWN and not isclicked:
       s_point= (x, y)
       read = False
+      isclicked = True
 
-    elif event == cv2.EVENT_RBUTTONDOWN:
+    elif event == cv2.EVENT_LBUTTONDOWN and isclicked:
       drawing = True
       num_rect = num_rect + 1
       e_point= (x, y)
       s_list.append(s_point)
       e_list.append(e_point)
       color_list.append(BLACK)
+      isclicked = False
 
 def coralRead(camInput):
   global read, drawing, s_list, e_list, color_list, num_rect
-  cap = cv2.VideoCapture(f'udpsrc port=5{camInput}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
-  # cap = cv2.VideoCapture(0)
+  # cap = cv2.VideoCapture(f'udpsrc port=5{camInput}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
+  cap = cv2.VideoCapture(0)
   cv2.namedWindow("Frame")
   cv2.setMouseCallback("Frame", mouse_drawing)
   flag_stop = True
@@ -63,6 +67,8 @@ def coralRead(camInput):
           e_list = []
           color_list = []
           num_rect = 0
+        elif key == ord('s'):
+          cv2.imwrite("result.jpeg",frame)
     key = cv2.waitKey(30) & 0xFF
     if key == ord('q'):
         flag_stop = False
@@ -81,4 +87,4 @@ def coralRead(camInput):
   cap.release()
   cv2.destroyAllWindows()
 
-# coralRead(0)
+coralRead(0)
