@@ -5,6 +5,7 @@ from flying_the_transect_line import read_video
 from task_2_2 import colonyhealthfunction
 from musselsTask import calcLitres
 from saveVideo import recordVideo
+from healthcolony_manual import coralRead
 # from grid import start_drawing 
 
 cam = "0" # camera 0
@@ -80,6 +81,8 @@ button7.place(x=100, y= 50)
 button8 = tk.Button(window, text = "GRID \n TASK" , fg = "blue", width = 14, height = 5)
 button8.place(x=100, y= 450)
 
+button9 = tk.Button(window, text = "Manual\n Coral Reef" , fg = "blue", width = 14, height = 5, command = lambda : coralRead(cam))
+button9.place(x=100, y= 550)
 
 
 window.mainloop()
