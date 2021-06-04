@@ -21,22 +21,23 @@ isclicked = False
 
 def mouse_drawing(event, x, y, flags, params):
     global s_point, e_point, drawing, num_rect, s_list, e_list, read,isclicked
-    if event == cv2.EVENT_LBUTTONDOWN and not isclicked:
-      s_point= (x, y)
-      read = False
-      isclicked = True
+    if event == cv2.EVENT_LBUTTONDOWN :
+      if not isclicked:
+        s_point= (x, y)
+        read = False
+        isclicked = True
 
-    elif event == cv2.EVENT_LBUTTONDOWN and isclicked:
-      drawing = True
-      num_rect = num_rect + 1
-      e_point= (x, y)
-      s_list.append(s_point)
-      e_list.append(e_point)
-      color_list.append(BLACK)
-      isclicked = False
+      else:
+        drawing = True
+        num_rect = num_rect + 1
+        e_point= (x, y)
+        s_list.append(s_point)
+        e_list.append(e_point)
+        color_list.append(BLACK)
+        isclicked = False
 
 def coralRead(camInput):
-  global read, drawing, s_list, e_list, color_list, num_rect
+  global read, drawing, s_list, e_list, color_list, num_rect, isclicked
   # cap = cv2.VideoCapture(f'udpsrc port=5{camInput}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
   cap = cv2.VideoCapture(0)
   cv2.namedWindow("Frame")
