@@ -27,37 +27,35 @@ def mouse_drawing(event, x, y, flags, params):
       s_list.append(s_point)
       e_list.append(e_point)
       color_list.append(BLACK)
-        
-cap = cv2.VideoCapture(0)
+
+def coralRead(camInput):
+
+  cap = cv2.VideoCapture(f'udpsrc port=5{camInput}00 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink', cv2.CAP_GSTREAMER)
+
+  cv2.namedWindow("Frame")
+  cv2.setMouseCallback("Frame", mouse_drawing)
+  flag_stop = True
+
+  while flag_stop:
+    _, frame = cap.read()
+    if drawing :
+      # cv2.rectangle(frame,s_point,e_point,(0,0,255),0)
+        for i in range(num_rect):
+          cv2.rectangle(frame,s_list[i],e_list[i],color_list[i],3)
+      
+        if cv2.waitKey(30) & 0xFF == ord('g'):
+          color_list[num_rect-1] = GREEN
+        elif cv2.waitKey(30) & 0xFF == ord('b'):
+          color_list[num_rect-1] = RED
+        elif cv2.waitKey(30) & 0xFF == ord('d'):
+          color_list[num_rect-1] = YELLOW
+        elif cv2.waitKey(30) & 0xFF == ord('r'):
+          color_list[num_rect-1] = BLUE
+    if cv2.waitKey(30) & 0xFF == ord('q'):
+        flag_stop = False
 
 
+    cv2.imshow("Frame", frame)
 
-cv2.namedWindow("Frame")
-cv2.setMouseCallback("Frame", mouse_drawing)
-
-while True:
-   _, frame = cap.read()
-   if drawing :
-    # cv2.rectangle(frame,s_point,e_point,(0,0,255),0)
-    for i in range(num_rect):
-        cv2.rectangle(frame,s_list[i],e_list[i],color_list[i],3)
-    
-    if cv2.waitKey(1) & 0xFF == ord('g'):
-      color_list[num_rect-1] = GREEN
-    elif cv2.waitKey(1) & 0xFF == ord('b'):
-      color_list[num_rect-1] = RED
-    elif cv2.waitKey(1) & 0xFF == ord('d'):
-      color_list[num_rect-1] = YELLOW
-    elif cv2.waitKey(1) & 0xFF == ord('r'):
-      color_list[num_rect-1] = BLUE
-
-
-   cv2.imshow("Frame", frame)
-   key = cv2.waitKey(25)
-   if key== 13:    
-     print('done')
-   elif key == 27:
-     break
-
-cap.release()
-cv2.destroyAllWindows()
+  cap.release()
+  cv2.destroyAllWindows()
